@@ -106,6 +106,7 @@ flutter:
     - family: Mulish
       fonts:
         - asset: assets/fonts/Mulish-Regular.ttf
+        - asset: assets/fonts/Mulish-Bold.ttf
         - asset: assets/fonts/Mulish-Italic.ttf
           style: italic
 

@@ -1,12 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:wellwiz/features/globalScaffold/global_scaffold.dart';
-import 'package:wellwiz/features/login/login_page.dart';
-import 'package:wellwiz/features/reminder/notification_service.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:wellwiz/globalScaffold/global_scaffold.dart';
+import 'package:wellwiz/login/login_page.dart';
+import 'package:wellwiz/quick_access/content/reminder_only/notification_service.dart';
+import 'package:wellwiz/quick_access/content/reminder_only/workmanager_handler.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:wellwiz/features/reminder/workmanager_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
