@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wellwiz/mental_peace/content/widgets/exercise_screen.dart';
+import 'package:wellwiz/mental_peace/content/exercises/widgets/exercise_screen.dart';
 
 class BreathingExercises extends StatelessWidget {
   const BreathingExercises({super.key});

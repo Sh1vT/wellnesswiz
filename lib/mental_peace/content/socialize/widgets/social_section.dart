@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.dart';
 import '../models/chatroom_model.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'achievement_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:wellwiz/mental_peace/content/widgets/chatroom_screen.dart';
 
 class SocialSection extends StatefulWidget {
   const SocialSection({super.key});

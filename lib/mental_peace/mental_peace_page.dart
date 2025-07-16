@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'content/widgets/emotion_selector.dart';
-import 'content/widgets/chatrooms_button.dart';
-import 'content/widgets/breathing_exercises.dart';
-import 'content/widgets/emotion_monitor.dart';
+import 'content/emotion_bot/widgets/emotion_selector.dart';
+import 'content/socialize/widgets/chatrooms_button.dart';
+import 'content/exercises/widgets/breathing_exercises.dart';
+import 'content/monitor/widgets/emotion_monitor.dart';
 
 class MentalPeacePage extends StatelessWidget {
   const MentalPeacePage({super.key});

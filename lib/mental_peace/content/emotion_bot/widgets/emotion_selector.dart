@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wellwiz/mental_peace/content/widgets/emotion_bot_screen.dart';
+import 'package:wellwiz/mental_peace/content/emotion_bot/emotion_bot_screen.dart';
 
 class EmotionSelector extends StatelessWidget {
   const EmotionSelector({super.key});
