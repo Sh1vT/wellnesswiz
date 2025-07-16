@@ -1,7 +1,5 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:wellwiz/secrets.dart';
 
 class ThoughtCard extends StatefulWidget {
   const ThoughtCard({super.key});
@@ -12,32 +10,37 @@ class ThoughtCard extends StatefulWidget {
 
 class _ThoughtCardState extends State<ThoughtCard> {
   int randomImageIndex = 1;
-  String thought = "To be, or not to be, that is the question";
-  bool thoughtGenerated = false;
-  late final ChatSession _chat;
-  static const _apiKey = geminikey;
-  late final GenerativeModel _model;
+  int currentThoughtIndex = 0;
 
-  void generateThought() async {
-    String prompt =
-        "Generate a deep philosophical Shakespearean thought for a mental health application that is purely for demonstration purposes and no commercial use. The thought has to be unique and should be positive. Respond with only the thought without formatting and nothing else. Keep the thought limited to 30 words.";
-    var response = await _chat.sendMessage(Content.text(prompt));
-    setState(() {
-      thought = response.text!;
-      thoughtGenerated = true;
-    });
-  }
+  final List<String> thoughts = [
+    "In the garden of health, every breath is a petal, every heartbeat a bloom.",
+    "Well-being is the gentle rain that nourishes the roots of our soul.",
+    "A calm mind is the sunlight that helps the body’s flowers unfold.",
+    "To care for the body is to write poetry with every step and every meal.",
+    "Health is the silent music that lets our spirit dance in the wind.",
+    "Let gratitude be the water that helps your wellness grow tall and strong.",
+    "In the quiet of self-care, the heart learns to sing again.",
+    "Each act of kindness to yourself is a seed for tomorrow’s joy.",
+    "Rest is the moonlight that lets the garden of your being renew.",
+    "Hope is the gentle breeze that carries the fragrance of healing."
+  ];
 
   @override
   void initState() {
     super.initState();
-    _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: _apiKey,
-    );
-    _chat = _model.startChat();
-    randomImageIndex = (Random().nextInt(7));
-    generateThought();
+    randomImageIndex = Random().nextInt(7);
+    currentThoughtIndex = Random().nextInt(thoughts.length);
+  }
+
+  void showNextThought() {
+    setState(() {
+      randomImageIndex = Random().nextInt(7);
+      int newIndex;
+      do {
+        newIndex = Random().nextInt(thoughts.length);
+      } while (newIndex == currentThoughtIndex && thoughts.length > 1);
+      currentThoughtIndex = newIndex;
+    });
   }
 
   @override
@@ -48,10 +51,7 @@ class _ThoughtCardState extends State<ThoughtCard> {
         key: UniqueKey(),
         direction: DismissDirection.horizontal,
         onDismissed: (direction) {
-          setState(() {
-            randomImageIndex = (Random().nextInt(7));
-            generateThought();
-          });
+          showNextThought();
         },
         child: Column(
           children: [
@@ -82,9 +82,7 @@ class _ThoughtCardState extends State<ThoughtCard> {
               child: Column(
                 children: [
                   Text(
-                    thoughtGenerated
-                        ? "“" + thought.replaceAll('\n', '') + "”"
-                        : thought,
+                    "“" + thoughts[currentThoughtIndex] + "”",
                     style: TextStyle(
                         color: Colors.white,
                         fontFamily: 'Mulish',
@@ -93,7 +91,7 @@ class _ThoughtCardState extends State<ThoughtCard> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: Text(
-                      thoughtGenerated ? "- Wisher   " : "-Shakespeare",
+                      "- Wisher   ",
                       style: TextStyle(
                           fontFamily: 'Mulish',
                           color: Colors.green.shade300,

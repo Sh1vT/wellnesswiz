@@ -60,6 +60,7 @@ class _BotScreenState extends State<BotScreen> {
   late File _image;
   bool imageInitialized = false;
   final Telephony telephony = Telephony.instance;
+  static const String _unsyncedKey = 'unsynced_messages';
 
   void _scrollDown() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -241,12 +242,57 @@ class _BotScreenState extends State<BotScreen> {
         apiKey: _apiKey,
         safetySettings: safetysettings);
     _chat = _model.startChat();
+    _syncUnsyncedMessages();
     _loadChatHistory();
     _getUserInfo();
     _initSpeech();
     // _clearProfileValues();
     // _testFirestorePermissions();
     _setupFCM();
+  }
+
+  @override
+  void dispose() {
+    _uploadBatchToFirestore();
+    super.dispose();
+  }
+
+  Future<void> _saveMessageLocally(ChatResponse message) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> cached = prefs.getStringList(_unsyncedKey) ?? [];
+    cached.add(jsonEncode(message.toJson()));
+    await prefs.setStringList(_unsyncedKey, cached);
+  }
+
+  Future<void> _uploadBatchToFirestore() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> cached = prefs.getStringList(_unsyncedKey) ?? [];
+    if (cached.isEmpty) return;
+    final User? user = _auth.currentUser;
+    if (user == null) return;
+    WriteBatch batch = _firestore.batch();
+    final chats = _firestore.collection('users').doc(user.uid).collection('chats');
+    for (String msgJson in cached) {
+      final msg = ChatResponse.fromJson(jsonDecode(msgJson));
+      batch.set(chats.doc(), msg.toFirestoreMap());
+    }
+    await batch.commit();
+    await prefs.remove(_unsyncedKey);
+  }
+
+  Future<void> _syncUnsyncedMessages() async {
+    await _uploadBatchToFirestore();
+  }
+
+  // Replace all history.add(...) with this helper
+  Future<void> _addMessage(ChatResponse message) async {
+    setState(() {
+      history.add(message);
+    });
+    await _saveMessageLocally(message);
+    if (history.length % 10 == 0) {
+      await _uploadBatchToFirestore();
+    }
   }
 
   Future<void> _setupFCM() async {
@@ -481,21 +527,19 @@ If there is no mention of a medication or dosage, respond with "none."
       List<String> newLines = lines.sublist(0, lines.length - 2);
       String modifiedText = newLines.join('\n');
       setState(() {
-        history.add(ChatResponse(isUser: false, text: modifiedText));
+        _addMessage(ChatResponse(isUser: false, text: modifiedText));
         symptomprediction = false;
         // print(symptomprediction);
         _loading = false;
         _scrollDown();
-        _saveChatHistory();
       });
       return;
     }
     setState(() {
-      history.add(ChatResponse(isUser: false, text: response.text));
+      _addMessage(ChatResponse(isUser: false, text: response.text));
       _loading = false;
       _scrollDown();
     });
-    _saveChatHistory();
   }
 
   Future<void> getImageCamera(BuildContext context) async {
@@ -721,7 +765,7 @@ If there is no mention of a medication or dosage, respond with "none."
       setState(() {
         if (response.text!.toLowerCase().trim() == ("appointment") ||
             response.text!.toLowerCase().trim() == ("appointment.")) {
-          history.add(ChatResponse(
+          _addMessage(ChatResponse(
             isUser: false,
             hasButton: true,
             button: ChatButton(
@@ -744,7 +788,7 @@ If there is no mention of a medication or dosage, respond with "none."
           _symptomLoop(message);
         } else if (response.text!.toLowerCase().trim() == ("report") ||
             response.text!.toLowerCase().trim() == ("report.")) {
-          history.add(ChatResponse(
+          _addMessage(ChatResponse(
             isUser: false,
             hasButton: true,
             button: ChatButton(
@@ -756,11 +800,10 @@ If there is no mention of a medication or dosage, respond with "none."
             ),
           ));
         } else {
-          history.add(ChatResponse(isUser: false, text: response.text));
+          _addMessage(ChatResponse(isUser: false, text: response.text));
         }
         _loading = false;
       });
-      _saveChatHistory();
       _scrollDown();
     } catch (e) {
       _showError(e.toString());
@@ -1137,7 +1180,7 @@ If there is no mention of a medication or dosage, respond with "none."
 
                               if (message.isNotEmpty) {
                                 setState(() {
-                                  history.add(ChatResponse(
+                                  _addMessage(ChatResponse(
                                       isUser: true, text: message));
                                   _loading =
                                       true; // Show loading indicator when sending the message
@@ -1212,4 +1255,31 @@ class ChatResponse {
     this.hasButton = false,
     this.button,
   });
+
+  Map<String, dynamic> toJson() => {
+    'isUser': isUser,
+    'text': text,
+    'hasButton': hasButton,
+    'button': button != null ? {'label': button!.label} : null,
+  };
+
+  factory ChatResponse.fromJson(Map<String, dynamic> json) => ChatResponse(
+    isUser: json['isUser'] as bool? ?? false,
+    text: json['text'] as String?,
+    hasButton: json['hasButton'] as bool? ?? false,
+    button: json['button'] != null
+        ? ChatButton(
+            label: json['button']['label'] as String? ?? '',
+            onPressed: () {}, // Placeholder
+          )
+        : null,
+  );
+
+  Map<String, dynamic> toFirestoreMap() => {
+    'isUser': isUser,
+    'text': text,
+    'hasButton': hasButton,
+    'button': button != null ? {'label': button!.label} : null,
+    'timestamp': Timestamp.now(),
+  };
 } 

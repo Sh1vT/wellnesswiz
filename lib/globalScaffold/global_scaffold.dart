@@ -14,14 +14,16 @@ import 'package:wellwiz/chat/chat_page.dart';
 import 'package:wellwiz/mental_peace/mental_peace_page.dart';
 import 'package:wellwiz/doctor/doctor_page.dart';
 import 'package:wellwiz/quick_access/quick_access_page.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wellwiz/providers/page_navigation_provider.dart';
 
-class GlobalScaffold extends StatefulWidget {
+class GlobalScaffold extends ConsumerStatefulWidget {
   @override
-  _GlobalScaffoldState createState() => _GlobalScaffoldState();
+  ConsumerState<GlobalScaffold> createState() => _GlobalScaffoldState();
 }
 
-class _GlobalScaffoldState extends State<GlobalScaffold> {
-  int _selectedItemPosition = 0;
+class _GlobalScaffoldState extends ConsumerState<GlobalScaffold> {
+  // int _selectedItemPosition = 0; // Remove local state
   SnakeBarBehaviour snakeBarStyle = SnakeBarBehaviour.pinned;
   SnakeShape snakeShape = SnakeShape.circle;
   bool showSelectedLabels = false;
@@ -44,12 +46,14 @@ class _GlobalScaffoldState extends State<GlobalScaffold> {
   void initState() {
     super.initState();
     _getUserInfo();
-    _pageController = PageController(initialPage: _selectedItemPosition);
+    final selectedIndex = ref.read(pageNavigationProvider);
+    _pageController = PageController(initialPage: selectedIndex);
     // Removed fall_detection and related logic
   }
 
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = ref.watch(pageNavigationProvider);
     final List<Widget> _pages = [
       ChatPage(
         uname: username.trim().substring(
@@ -70,9 +74,7 @@ class _GlobalScaffoldState extends State<GlobalScaffold> {
           physics: NeverScrollableScrollPhysics(),
           controller: _pageController,
           onPageChanged: (index) {
-            setState(() {
-              _selectedItemPosition = index;
-            });
+            ref.read(pageNavigationProvider.notifier).state = index;
           },
           children: _pages),
       bottomNavigationBar: SnakeNavigationBar.color(
@@ -99,11 +101,9 @@ class _GlobalScaffoldState extends State<GlobalScaffold> {
             : null,
         showUnselectedLabels: showUnselectedLabels,
         showSelectedLabels: showSelectedLabels,
-        currentIndex: _selectedItemPosition,
+        currentIndex: selectedIndex,
         onTap: (index) {
-          setState(() {
-            _selectedItemPosition = index;
-          });
+          ref.read(pageNavigationProvider.notifier).state = index;
           _pageController.animateToPage(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOut,

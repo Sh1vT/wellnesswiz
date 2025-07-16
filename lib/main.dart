@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:wellwiz/globalScaffold/global_scaffold.dart';
 import 'package:wellwiz/login/login_page.dart';
@@ -27,7 +28,7 @@ void main() async {
   final NotificationService notificationService = NotificationService();
   await notificationService.init();
 
-  runApp(const MyApp());
+  runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatefulWidget {
