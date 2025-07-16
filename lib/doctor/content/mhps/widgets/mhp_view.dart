@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wellwiz/doctor/content/widgets/app_page.dart'; // Modular path for UserAppointmentsPage
-import 'package:wellwiz/doctor/content/widgets/mhp_tile.dart'; // Modular path for MhpTile
+import 'package:wellwiz/doctor/content/docs/widgets/app_page.dart';
+import 'package:wellwiz/doctor/content/mhps/widgets/mhp_tile.dart';
 
 class MhpView extends StatefulWidget {
   final String userId;

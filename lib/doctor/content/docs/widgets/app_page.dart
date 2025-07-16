@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:wellwiz/doctor/content/widgets/doc_view.dart';
+import 'package:wellwiz/doctor/content/docs/widgets/doc_view.dart';
 
 class UserAppointmentsPage extends StatefulWidget {
   final String userId;

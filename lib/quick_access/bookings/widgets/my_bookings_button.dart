@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:wellwiz/quick_access/content/widgets/reminder_page.dart';
+import 'package:wellwiz/doctor/content/docs/widgets/app_page.dart';
 
-class MyRemindersButton extends StatelessWidget {
-  const MyRemindersButton({super.key});
+class MyBookingsButton extends StatelessWidget {
+  const MyBookingsButton({super.key});
 
   @override
   Widget build(BuildContext context) {
     final FirebaseAuth _auth = FirebaseAuth.instance;
     return GestureDetector(
       onTap: () {
-        String userId = _auth.currentUser?.uid ?? '';
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return ReminderPage(userId: userId);
+          return UserAppointmentsPage(userId: _auth.currentUser?.uid ?? '');
         }));
       },
       child: Padding(
@@ -27,7 +26,7 @@ class MyRemindersButton extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Icons.alarm,
+                  Icons.collections_bookmark_outlined,
                   size: 40,
                   color: Colors.grey.shade700,
                 ),
@@ -41,7 +40,7 @@ class MyRemindersButton extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           fontSize: 18),
                     ),
-                    Text('Reminders',
+                    Text('Bookings',
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey.shade700,

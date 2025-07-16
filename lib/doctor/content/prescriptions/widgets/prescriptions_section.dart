@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wellwiz/chat/content/widgets/bot_screen.dart';
+import 'package:wellwiz/chat/content/bot/widgets/bot_screen.dart';
 
 class PrescriptionsSection extends StatefulWidget {
   const PrescriptionsSection({super.key});

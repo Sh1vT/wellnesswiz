@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wellwiz/chat/content/widgets/bot_screen.dart';
+import 'package:wellwiz/chat/content/bot/widgets/bot_screen.dart';
 
 class BotButton extends StatelessWidget {
   const BotButton({super.key});

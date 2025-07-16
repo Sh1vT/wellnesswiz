@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:wellwiz/doctor/content/widgets/app_page.dart';
+import 'package:wellwiz/chat/content/alerts/widgets/emergency_service.dart';
 
-class MyBookingsButton extends StatelessWidget {
-  const MyBookingsButton({super.key});
+class SosContactsButton extends StatelessWidget {
+  const SosContactsButton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
     return GestureDetector(
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return UserAppointmentsPage(userId: _auth.currentUser?.uid ?? '');
+          return EmergencyScreen();
         }));
       },
       child: Padding(
@@ -26,7 +24,7 @@ class MyBookingsButton extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Icons.collections_bookmark_outlined,
+                  Icons.notifications_active_outlined,
                   size: 40,
                   color: Colors.grey.shade700,
                 ),
@@ -34,13 +32,13 @@ class MyBookingsButton extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'My ',
+                      'SOS ',
                       style: TextStyle(
                           color: Color.fromARGB(255, 106, 172, 67),
                           fontWeight: FontWeight.bold,
                           fontSize: 18),
                     ),
-                    Text('Bookings',
+                    Text('Contacts',
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey.shade700,

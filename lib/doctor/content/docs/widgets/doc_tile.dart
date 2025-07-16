@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wellwiz/doctor/content/widgets/booking.dart';
+import 'package:wellwiz/doctor/content/docs/widgets/booking.dart';
 
 class Doctor {
   final String id;

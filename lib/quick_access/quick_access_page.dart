@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:wellwiz/quick_access/account/widgets/my_account_button.dart';
+import 'package:wellwiz/quick_access/account/widgets/quick_access_title.dart';
+import 'package:wellwiz/quick_access/bookings/widgets/my_bookings_button.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
-import 'content/widgets/quick_access_title.dart';
-import 'content/widgets/my_bookings_button.dart';
-import 'content/widgets/my_reminders_button.dart';
-import 'content/widgets/daily_positivity_button.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'content/widgets/sos_contacts_button.dart';
-import 'content/widgets/log_out_button.dart';
-import 'content/widgets/my_account_button.dart';
+import 'package:wellwiz/quick_access/logout/widgets/log_out_button.dart';
+import 'package:wellwiz/quick_access/positivity/widgets/daily_positivity_button.dart';
+import 'package:wellwiz/quick_access/reminders/widgets/my_reminders_button.dart';
+import 'package:wellwiz/quick_access/sos/widgets/sos_contacts_button.dart';
+
 import 'account/account_page.dart';
 
 class QuickAccessPage extends StatefulWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:wellwiz/doctor/content/widgets/doc_view.dart';
+import 'package:wellwiz/doctor/content/docs/widgets/doc_view.dart';
 
 class DoctorsSection extends StatefulWidget {
   const DoctorsSection({super.key});

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:wellwiz/chat/content/widgets/emergency_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:wellwiz/quick_access/content/reminder_only/reminder_page.dart';
 
-class SosContactsButton extends StatelessWidget {
-  const SosContactsButton({super.key});
+class MyRemindersButton extends StatelessWidget {
+  const MyRemindersButton({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final FirebaseAuth _auth = FirebaseAuth.instance;
     return GestureDetector(
       onTap: () {
+        String userId = _auth.currentUser?.uid ?? '';
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return EmergencyScreen();
+          return ReminderPage(userId: userId);
         }));
       },
       child: Padding(
@@ -24,7 +27,7 @@ class SosContactsButton extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Icons.notifications_active_outlined,
+                  Icons.alarm,
                   size: 40,
                   color: Colors.grey.shade700,
                 ),
@@ -32,13 +35,13 @@ class SosContactsButton extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'SOS ',
+                      'My ',
                       style: TextStyle(
                           color: Color.fromARGB(255, 106, 172, 67),
                           fontWeight: FontWeight.bold,
                           fontSize: 18),
                     ),
-                    Text('Contacts',
+                    Text('Reminders',
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey.shade700,

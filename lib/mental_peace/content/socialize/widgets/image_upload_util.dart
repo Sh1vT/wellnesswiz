@@ -2,14 +2,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import '../../../../../secrets.dart';
 
 Future<String?> pickAndUploadImage() async {
   final picker = ImagePicker();
   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
   if (pickedFile != null) {
     File imageFile = File(pickedFile.path);
-    final cloudName = 'dawsl2loi';
-    final uploadPreset = 'wellwiz_unsigned';
+    final cloudName = cloudinaryCloudName;
+    final uploadPreset = cloudinaryUploadPreset;
     final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
 
     final request = http.MultipartRequest('POST', url)

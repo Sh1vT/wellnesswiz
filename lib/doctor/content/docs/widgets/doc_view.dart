@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wellwiz/doctor/content/widgets/app_page.dart'; // Modular path for UserAppointmentsPage
-import 'package:wellwiz/doctor/content/widgets/doc_tile.dart'; // Modular path for DoctorTile
+import 'package:wellwiz/doctor/content/docs/widgets/app_page.dart';
+import 'package:wellwiz/doctor/content/docs/widgets/doc_tile.dart';
 
 class DocView extends StatefulWidget {
   final String userId;

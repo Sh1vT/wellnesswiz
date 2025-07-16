@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'content/widgets/bot_button.dart';
-import 'content/widgets/sos_alert_button.dart';
-import 'content/widgets/sos_contacts_button.dart';
-import 'content/widgets/thought_card.dart';
+import 'content/bot/widgets/bot_button.dart';
+import 'content/alerts/widgets/sos_alert_button.dart';
+import 'content/alerts/widgets/sos_contacts_button.dart';
+import 'content/thoughts/widgets/thought_card.dart';
 
 class ChatPage extends StatelessWidget {
   final String uname;

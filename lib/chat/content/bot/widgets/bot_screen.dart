@@ -19,11 +19,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:another_telephony/telephony.dart';
-import 'package:wellwiz/chat/content/widgets/message_tile.dart';
-import 'package:wellwiz/doctor/content/widgets/doc_view.dart';
+import 'package:wellwiz/chat/content/alerts/widgets/sos_alert_button.dart';
+import 'package:wellwiz/doctor/content/docs/widgets/doc_view.dart';
+import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.dart';
 // TODO: Modularize and import emergency_service.dart from the new location
 // import 'package:wellwiz/chat/content/widgets/emergency_service.dart';
-import 'package:wellwiz/chat/content/widgets/sos_alert_button.dart'; // For ContactData
 import 'package:wellwiz/secrets.dart';
 
 class BotScreen extends StatefulWidget {
@@ -1104,6 +1104,7 @@ If there is no mention of a medication or dosage, respond with "none."
 
                       if (content.text != null && content.text!.isNotEmpty) {
                         return MessageTile(
+                          senderName: content.isUser ? username : 'Wizard',
                           sendByMe: content.isUser,
                           message: content.text!,
                         );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:wellwiz/doctor/content/widgets/mhp_view.dart';
+import 'package:wellwiz/doctor/content/mhps/widgets/mhp_view.dart';
 
 class MhpsSection extends StatefulWidget {
   const MhpsSection({super.key});

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:wellwiz/chat/content/widgets/emergency_service.dart';
+import 'package:wellwiz/chat/content/alerts/widgets/emergency_service.dart';
 
 class SOSContactsButton extends StatelessWidget {
   const SOSContactsButton({super.key});
