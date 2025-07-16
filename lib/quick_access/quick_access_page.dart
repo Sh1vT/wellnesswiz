@@ -7,7 +7,6 @@ import 'package:wellwiz/quick_access/logout/widgets/log_out_button.dart';
 import 'package:wellwiz/quick_access/positivity/widgets/daily_positivity_button.dart';
 import 'package:wellwiz/quick_access/reminders/widgets/my_reminders_button.dart';
 import 'package:wellwiz/quick_access/sos/widgets/sos_contacts_button.dart';
-
 import 'account/account_page.dart';
 
 class QuickAccessPage extends StatefulWidget {
