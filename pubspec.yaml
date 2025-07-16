@@ -66,6 +66,7 @@ dependencies:
   audioplayers: ^6.1.0
   flutter_snake_navigationbar: ^0.6.1
   flutter_riverpod: ^2.6.1
+  http: ^1.4.0
 
 dev_dependencies:
   flutter_test:

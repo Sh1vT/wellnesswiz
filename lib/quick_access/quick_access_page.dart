@@ -7,6 +7,8 @@ import 'content/widgets/daily_positivity_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'content/widgets/sos_contacts_button.dart';
 import 'content/widgets/log_out_button.dart';
+import 'content/widgets/my_account_button.dart';
+import 'account/account_page.dart';
 
 class QuickAccessPage extends StatefulWidget {
   const QuickAccessPage({super.key});
@@ -52,6 +54,9 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
       children: [
         const QuickAccessTitle(),
         const SizedBox(height: 20),
+        MyAccountButton(onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) => AccountPage()));
+        }),
         const MyBookingsButton(),
         const MyRemindersButton(),
         DailyPositivityButton(onTap: _pickTimeAndScheduleDailyThought),
