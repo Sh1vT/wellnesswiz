@@ -7,6 +7,8 @@ import 'package:wellwiz/globalScaffold/global_scaffold.dart';
 import 'package:wellwiz/login/login_page.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/notification_service.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/workmanager_handler.dart';
+import 'package:wellwiz/utils/achievement_uploader.dart';
+import 'package:wellwiz/utils/chatroom_uploader.dart';
 import 'package:workmanager/workmanager.dart';
 
 void main() async {
@@ -27,6 +29,9 @@ void main() async {
 
   final NotificationService notificationService = NotificationService();
   await notificationService.init();
+
+  // uploadSampleAchievements();
+  // uploadSampleChatrooms();
 
   runApp(ProviderScope(child: MyApp()));
 }

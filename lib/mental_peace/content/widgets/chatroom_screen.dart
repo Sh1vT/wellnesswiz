@@ -20,9 +20,6 @@ class ChatRoomScreen extends StatefulWidget {
 }
 
 class _ChatRoomScreenState extends State<ChatRoomScreen> {
-  final safetysettings = [
-    SafetySetting(HarmCategory.dangerousContent, HarmBlockThreshold.none),
-  ];
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textController = TextEditingController();
   final FocusNode _textFieldFocus = FocusNode();
@@ -30,25 +27,37 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   late final FirebaseAuth _auth;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late SharedPreferences _prefs;
-  late final ChatSession _chat;
-  static const _apiKey = geminikey;
-  late final GenerativeModel _model;
+  String? _username;
 
   @override
   void initState() {
     super.initState();
     _auth = FirebaseAuth.instance;
     _initializeSharedPreferences();
-    _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: _apiKey,
-      safetySettings: safetysettings,
-    );
-    _chat = _model.startChat();
+    _addUserToChatroom();
   }
 
   Future<void> _initializeSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _username = _prefs.getString('username') ?? 'User';
+    });
+  }
+
+  Future<void> _addUserToChatroom() async {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) return;
+    final docRef = _firestore.collection('chatrooms').doc(widget.roomId);
+    final doc = await docRef.get();
+    if (!doc.exists) return;
+    final data = doc.data() as Map<String, dynamic>;
+    final List members = data['members'] ?? [];
+    if (!members.contains(userId)) {
+      await docRef.update({
+        'members': FieldValue.arrayUnion([userId]),
+        'memberCount': (data['memberCount'] ?? members.length) + 1,
+      });
+    }
   }
 
   void _scrollDown() {
@@ -74,76 +83,26 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       _textFieldFocus.unfocus();
     });
 
-    bool isGeminiCommand = message.startsWith('/wiz');
-
-    if (isGeminiCommand) {
-      String promptforGemini = """You are being used as a mental health chatbot for demonstration purposes and not commercially or professionally.\nThe user has entered this message: $message. Respond to that message.\n""";
-      var response = await _chat.sendMessage(Content.text(message));
-      print("Response : " + response.text!);
-      try {
-        await _firestore
-            .collection('chatrooms')
-            .doc(widget.roomId)
-            .collection('messages')
-            .add({
-          'senderId': _auth.currentUser?.uid,
-          'message': message,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-        await _firestore
-            .collection('chatrooms')
-            .doc(widget.roomId)
-            .collection('messages')
-            .add({
-          'senderId': 'gemini',
-          'message': response.text!,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-        setState(() {
-          _loading = false;
-        });
-        _scrollDown();
-      } catch (e) {
-        setState(() {
-          _loading = false;
-        });
-        _showError(e.toString());
-      }
-    } else {
-      String prompt =
-          """You are being used as a mental health chatbot for demonstration purposes and not commercially or professionally.\nCurrently you are employed as a gateway inside a chatroom. The user is going to enter their message.\nTheir message starts now : $message. The message has ended.\nBear in mind that this chatbot application was designed for people to seek mental help and reduce strain of their daily lives, so you can allow mild political discussions or darker themed jokes and gags.\nHowever you cannot allow some user to demean others. They might demean themselves, allow that because the other users will only help them feel better. You can also allow mild usage of swears.\nHence, If you think the message by user is insensitive and may harm other users in the chatroom mentally then respond with the plain text of \"no\" and nothing else.\nIf the message is targeted to you, which is decided if the message starts with \"/wiz\", then reply to that message.\nIf the message is well and good and not targeted to you (not starting with \"/wiz\") either but others in the chatroom then reply with plain text of \"someone\" and nothing else.""";
-      var response = await _chat.sendMessage(Content.text(prompt));
-      print(response.text!);
-      if (response.text!.trim().toLowerCase() == "no" ||
-          response.text!.trim().toLowerCase() == "no.") {
-        setState(() {
-          _loading = false;
-        });
-        return;
-      }
-      if (response.text!.trim().toLowerCase() == "someone" ||
-          response.text!.trim().toLowerCase() == "someone.") {
-        try {
-          await _firestore
-              .collection('chatrooms')
-              .doc(widget.roomId)
-              .collection('messages')
-              .add({
-            'senderId': _auth.currentUser?.uid,
-            'message': message,
-            'timestamp': FieldValue.serverTimestamp(),
-          });
-          setState(() {
-            _loading = false;
-          });
-          _scrollDown();
-        } catch (e) {
-          setState(() {
-            _loading = false;
-          });
-          _showError(e.toString());
-        }
-      }
+    try {
+      await _firestore
+          .collection('chatrooms')
+          .doc(widget.roomId)
+          .collection('messages')
+          .add({
+        'senderId': _auth.currentUser?.uid,
+        'senderName': _username ?? 'User',
+        'message': message,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      setState(() {
+        _loading = false;
+      });
+      _scrollDown();
+    } catch (e) {
+      setState(() {
+        _loading = false;
+      });
+      _showError(e.toString());
     }
   }
 
@@ -173,7 +132,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Anonymous Chatroom'),
+        title: const Text('Chatroom'),
       ),
       body: SafeArea(
         child: Stack(
@@ -194,6 +153,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     isUser: doc['senderId'] == _auth.currentUser?.uid,
                     message: doc['message'],
                     senderId: doc['senderId'],
+                    senderName: doc['senderName'] ?? 'User',
                   );
                 }).toList();
                 if (snapshot.data!.docs.isNotEmpty) {
@@ -208,7 +168,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     return MessageTile(
                       sendByMe: content.isUser,
                       message: content.message,
-                      isGemini: content.senderId == 'gemini',
+                      senderName: content.senderName,
                     );
                   },
                   separatorBuilder: (context, index) {
@@ -295,26 +255,31 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 }
 
 class MessageTile extends StatelessWidget {
-  const MessageTile(
-      {super.key,
-      required this.sendByMe,
-      required this.message,
-      required this.isGemini});
+  const MessageTile({
+    super.key,
+    required this.sendByMe,
+    required this.message,
+    required this.senderName,
+  });
 
   final bool sendByMe;
   final String message;
-  final bool isGemini;
+  final String senderName;
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final bgColor = sendByMe
+        ? Colors.green.shade400
+        : Colors.primaries[senderName.hashCode % Colors.primaries.length].shade200;
+    final textColor = sendByMe ? Colors.white : Colors.black;
     return Column(
       crossAxisAlignment:
           sendByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
         Text(
-          isGemini ? 'Wizard' : (sendByMe ? 'You' : 'Anonymous'),
-          style: const TextStyle(fontSize: 11.5, color: Colors.grey),
+          sendByMe ? 'You' : senderName,
+          style: TextStyle(fontSize: 11.5, color: bgColor, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 5),
         Row(
@@ -335,20 +300,11 @@ class MessageTile extends StatelessWidget {
                       ? const Radius.circular(4)
                       : const Radius.circular(12),
                 ),
-                color: isGemini
-                    ? Colors.grey.shade200
-                    : (sendByMe ? Colors.green.shade400 : Colors.grey.shade200),
+                color: bgColor,
               ),
-              child: MarkdownBody(
-                data: message,
-                selectable: true,
-                styleSheet: MarkdownStyleSheet(
-                  p: TextStyle(
-                      fontSize: 14,
-                      color: isGemini
-                          ? Colors.black
-                          : (sendByMe ? Colors.white : Colors.black)),
-                ),
+              child: Text(
+                message,
+                style: TextStyle(fontSize: 14, color: textColor),
               ),
             ),
           ],
@@ -362,7 +318,12 @@ class ChatMessage {
   final bool isUser;
   final String message;
   final String senderId;
+  final String senderName;
 
-  ChatMessage(
-      {required this.isUser, required this.message, required this.senderId});
+  ChatMessage({
+    required this.isUser,
+    required this.message,
+    required this.senderId,
+    required this.senderName,
+  });
 } 
