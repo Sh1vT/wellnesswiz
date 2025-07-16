@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:wellwiz/mental_peace/content/widgets/social_section.dart';
+import 'package:wellwiz/mental_peace/content/socialize/widgets/social_section.dart';
 
 class ChatroomsButton extends StatelessWidget {
   const ChatroomsButton({super.key});
