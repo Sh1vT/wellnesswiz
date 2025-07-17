@@ -11,10 +11,16 @@ import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.d
 import 'package:wellwiz/secrets.dart';
 // import 'package:wellwiz/secrets.dart';
 
-class EmotionBotScreen extends StatefulWidget {
-  final String emotion;
-  EmotionBotScreen({super.key, required this.emotion});
+class MoodSegment {
+  String mood;
+  DateTime startTime;
+  DateTime? endTime;
+  MoodSegment({required this.mood, required this.startTime, this.endTime});
+}
 
+class EmotionBotScreen extends StatefulWidget {
+  EmotionBotScreen({super.key});
+  // Removed emotion parameter
   @override
   State<EmotionBotScreen> createState() => _EmotionBotScreenState();
 }
@@ -37,6 +43,13 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
   late SharedPreferences _prefs;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String mentalissues = "";
+  List<MoodSegment> moodSegments = [];
+  String currentMood = "Neutral";
+  int messageCount = 0;
+  List<ChatLogEntry> recentChatLog = [];
+  static const List<String> keyEmotions = [
+    'Happy', 'Sad', 'Angry', 'Anxious', 'Frustrated', 'Stressed', 'Neutral'
+  ];
 
   void _showError(String message) {
     showDialog(
@@ -98,6 +111,25 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
     }
   }
 
+  Future<void> _detectMood() async {
+    String chatContext = recentChatLog.map((e) => "${e.sender}: ${e.message}").join("\n");
+    String prompt = "Based on the following conversation (user and Gemini), what is the user's current mood? Respond with only one of: ${keyEmotions.join(", ")}. Conversation:\n$chatContext";
+    var response = await _chat.sendMessage(Content.text(prompt));
+    String detectedMood = keyEmotions.firstWhere(
+      (m) => response.text != null && response.text!.toLowerCase().contains(m.toLowerCase()),
+      orElse: () => "Neutral",
+    );
+    if (detectedMood != currentMood) {
+      // End previous segment
+      moodSegments.last.endTime = DateTime.now();
+      // Start new segment
+      moodSegments.add(MoodSegment(mood: detectedMood, startTime: DateTime.now()));
+      setState(() {
+        currentMood = detectedMood;
+      });
+    }
+  }
+
   Future<void> _sendChatMessage(String message) async {
     if (message.trim().isEmpty) {
       return;
@@ -111,20 +143,27 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
 
     _scrollDown();
     _suggestmhp(message);
-
+    // Track both user and Gemini messages for mood detection
+    messageCount++;
+    recentChatLog.add(ChatLogEntry(sender: 'user', message: message));
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? profile = prefs.getString('prof');
       String prompt =
-          """You are being used as a mental health chatbot for queries regarding mental issues. \nIt is only a demonstration prototype and you are not being used for something professional or commercial. \nThe user will enter his message now: $message. User message has ended. \nCurrently the user is feeling this emotion: $currentEmotion.\nGive responses in context to the current emotion.\nTry utilising CBT principles i.e. converting negative thought patterns into positive ones.\nAlso, keep the text short to make it look like test bubbles. Avoid paragraphs, say it all in a single line.\nThe chat history so far has been this : $history""";
-
+          "You are being used as a mental health chatbot for queries regarding mental issues. It is only a demonstration prototype and you are not being used for something professional or commercial. The user will enter his message now: $message. User message has ended. Currently the user is feeling this emotion: $currentMood. Give responses in context to the current emotion. Try utilising CBT principles i.e. converting negative thought patterns into positive ones. Also, keep the text short to make it look like test bubbles. Avoid paragraphs, say it all in a single line. The chat history so far has been this : $history";
       var response = await _chat.sendMessage(Content.text(prompt));
-
+      // Log Gemini's response for context
+      messageCount++;
+      recentChatLog.add(ChatLogEntry(sender: 'gemini', message: response.text ?? ''));
+      // Check for mood after every 20 messages (10 user, 10 gemini)
+      if (recentChatLog.length == 20) {
+        await _detectMood();
+        recentChatLog.clear();
+      }
       setState(() {
         history.add(ChatResponse(isUser: false, text: response.text));
         _loading = false;
       });
-
       _scrollDown();
     } catch (e) {
       _showError(e.toString());
@@ -157,7 +196,9 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
 
   void _endSessionAndStoreTime() async {
     DateTime _endTime = DateTime.now();
-    int sessionDurationInMinutes = _endTime.difference(_startTime).inMinutes;
+    if (moodSegments.isNotEmpty) {
+      moodSegments.last.endTime = _endTime;
+    }
     String currentDate = DateFormat('yyyy-MM-dd').format(_endTime);
     Map<String, dynamic> dayData = {};
     if (_prefs.containsKey(currentDate)) {
@@ -166,10 +207,15 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         dayData = Map<String, dynamic>.from(jsonDecode(jsonData));
       }
     }
-    if (dayData.containsKey(currentEmotion)) {
-      dayData[currentEmotion] += sessionDurationInMinutes;
-    } else {
-      dayData[currentEmotion] = sessionDurationInMinutes;
+    for (var segment in moodSegments) {
+      if (segment.endTime == null) continue;
+      int duration = segment.endTime!.difference(segment.startTime).inMinutes;
+      if (duration <= 0) continue;
+      if (dayData.containsKey(segment.mood)) {
+        dayData[segment.mood] += duration;
+      } else {
+        dayData[segment.mood] = duration;
+      }
     }
     _prefs.setString(currentDate, jsonEncode(dayData));
     print(dayData);
@@ -177,7 +223,8 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
 
   @override
   void initState() {
-    currentEmotion = widget.emotion;
+    currentMood = "Neutral";
+    moodSegments = [MoodSegment(mood: currentMood, startTime: DateTime.now())];
     _initSpeech();
     super.initState();
     _model = GenerativeModel(
@@ -453,4 +500,11 @@ class ChatResponse {
     this.hasButton = false,
     this.button,
   });
+}
+
+// Add a class for chat log entries
+class ChatLogEntry {
+  final String sender; // 'user' or 'gemini'
+  final String message;
+  ChatLogEntry({required this.sender, required this.message});
 } 

@@ -14,51 +14,7 @@ class EmotionSelector extends StatelessWidget {
             width: double.infinity,
             child: GestureDetector(
               onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      backgroundColor: Colors.grey.shade50,
-                      title: Text(
-                        "How do you feel today?",
-                        style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.grey.shade700,
-                            fontFamily: 'Mulish',
-                            fontWeight: FontWeight.w600),
-                      ),
-                      content: SingleChildScrollView(
-                        child: Wrap(
-                          spacing: 8.0,
-                          runSpacing: 8.0,
-                          children: [
-                            _emotionButton(context, 'Happy', Colors.lightGreen),
-                            _emotionButton(context, 'Sad', Colors.blueAccent),
-                            _emotionButton(context, 'Angry', Colors.red),
-                            _emotionButton(context, 'Anxious', Colors.orange),
-                            _emotionButton(context, 'Frustrated', Colors.purple),
-                            _emotionButton(context, 'Stressed', Colors.grey),
-                          ],
-                        ),
-                      ),
-                      actions: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            backgroundColor: Color.fromARGB(255, 106, 172, 67),
-                          ),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            "Cancel",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => EmotionBotScreen()));
               },
               child: Container(
                 padding: EdgeInsets.only(top: 20, bottom: 20, left: 16, right: 16), // Reduce horizontal padding
@@ -138,7 +94,7 @@ class EmotionSelector extends StatelessWidget {
       onPressed: () {
         Navigator.pop(context);
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return EmotionBotScreen(emotion: emotion);
+          return EmotionBotScreen();
         }));
       },
       child: Text(
