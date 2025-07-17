@@ -228,7 +228,7 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
     _initSpeech();
     super.initState();
     _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash-lite',
       apiKey: _apiKey,
     );
     _chat = _model.startChat();

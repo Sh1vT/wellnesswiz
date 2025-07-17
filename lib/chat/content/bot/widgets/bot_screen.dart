@@ -238,7 +238,7 @@ class _BotScreenState extends State<BotScreen> {
   void initState() {
     super.initState();
     _model = GenerativeModel(
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.0-flash-lite',
         apiKey: _apiKey,
         safetySettings: safetysettings);
     _chat = _model.startChat();

@@ -41,7 +41,7 @@ class _DoctorPageState extends State<DoctorPage> {
           within1km: DoctorPage.hospitals1km,
         ),
         // const MhpsSection(), // Commented out as requested
-        const SizedBox(height: 20),
+        // const SizedBox(height: 20),
         const HealthMetricsSection(),
         const SizedBox(height: 20),
         const PrescriptionsSection(),

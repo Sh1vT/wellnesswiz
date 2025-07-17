@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:wellwiz/globalScaffold/global_scaffold.dart';
 import 'package:wellwiz/login/login_page.dart';
@@ -67,8 +69,19 @@ void main() async {
   } catch (e) {
     print('Error fetching user location or hospitals: $e');
   }
+  // clearOldHealthData();
 
   runApp(ProviderScope(child: MyApp()));
+}
+
+void clearOldHealthData() async {
+  final pref = await SharedPreferences.getInstance();
+  await pref.remove('scan_history');
+  await pref.remove('scan_grouped_history');
+  await pref.remove('prof');
+  await pref.remove('contacts');
+  await pref.remove('table');
+  Fluttertoast.showToast(msg: "Old health/profile data cleared.");
 }
 
 class MyApp extends StatefulWidget {

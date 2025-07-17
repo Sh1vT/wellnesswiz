@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wellwiz/secrets.dart';
@@ -18,18 +17,10 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
   String? selectedDay;
   Map<String, int> emotionDistribution = {};
   late SharedPreferences _prefs;
-  late final ChatSession _chat;
-  static const _apiKey = geminikey;
-  late final GenerativeModel _model;
 
   @override
   void initState() {
     super.initState();
-    _model = GenerativeModel(
-      model: 'gemini-1.5-flash',
-      apiKey: _apiKey,
-    );
-    _chat = _model.startChat();
     _loadData();
   }
 
@@ -43,40 +34,34 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
   Map<String, Map<String, int>> _getAllEmotionData() {
     Map<String, Map<String, int>> data = {};
     for (String key in _prefs.getKeys()) {
-      String? jsonData = _prefs.getString(key);
-      if (key == 'userimg' || key == 'username') {
-        continue;
-      }
-      if (jsonData != null) {
-        try {
-          Map<String, dynamic> dayData = Map<String, dynamic>.from(jsonDecode(jsonData));
-          data[key] = dayData.map((k, v) => MapEntry(k, v as int));
-        } catch (e) {
-          print('Error decoding JSON for key $key: $e');
-        }
+      // Skip known non-emotion keys
+      if (key == 'userimg' || key == 'username' || key == 'scan_grouped_history' || key == 'custom_report_types') continue;
+      // Skip keys that are not String (e.g., List<String> from setStringList)
+      final value = _prefs.get(key);
+      if (value is! String) continue;
+      String jsonData = value;
+      try {
+        Map<String, dynamic> dayData = Map<String, dynamic>.from(jsonDecode(jsonData));
+        data[key] = dayData.map((k, v) => MapEntry(k, v as int));
+      } catch (e) {
+        print('Error decoding JSON for key $key: $e');
       }
     }
     return data;
   }
 
-  void _onBarTap(String day) async {
-    setState(() {
-      selectedDay = day;
-      emotionDistribution = allData[day] ?? {};
-    });
-    String prompt =
-        """You are a mental health chatbot being used purely for demonstration purposes and not commercially or professionally.\nHere how the user has felt for a given day : $emotionDistribution. The distribution is a map of emotion and integer. The integer is the duration in minutes.\nBasically different predfined sessions are created and based on the session duration this integer is obtained.\nGenerate a short 30-40 word insight summarising how the user felt and give your advice to the user too. If negative, tell user ways to make them feel positive.\nStart with: On this day you felt...""";
-    var response = await _chat.sendMessage(Content.text(prompt));
-    _showPieChartDialog(response.text!.replaceAll('\n', ''));
+  void _onBarTap(String day) {
+    final moodMap = allData[day] ?? {};
+    _showPieChartDialog(day, moodMap);
   }
 
-  void _showPieChartDialog(String message) {
-    showDialog(
+  void _showPieChartDialog(String day, Map<String, int> moodMap) async {
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            'Your chat sessions for $selectedDay',
+            'Your chat sessions for $day',
             style: TextStyle(fontSize: 18),
           ),
           content: SingleChildScrollView(
@@ -85,7 +70,7 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
               children: [
                 SizedBox(
                   height: 200,
-                  child: _buildPieChart(),
+                  child: _buildPieChart(moodMap),
                 ),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -99,22 +84,7 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  margin: const EdgeInsets.only(top: 4),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 177, 221, 152),
-                    borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomLeft: Radius.circular(12),
-                        bottomRight: Radius.circular(12)),
-                  ),
-                  child: Text(
-                    message,
-                    textAlign: TextAlign.justify,
-                    style: TextStyle(fontSize: 14),
-                  ),
-                )
+                // No summary, just show the pie chart and logo
               ],
             ),
           ),
@@ -123,10 +93,10 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
     );
   }
 
-  Widget _buildPieChart() {
+  Widget _buildPieChart(Map<String, int> moodMap) {
     return PieChart(
       PieChartData(
-        sections: emotionDistribution.entries.map((entry) {
+        sections: moodMap.entries.map((entry) {
           final emotion = entry.key;
           final time = entry.value;
           return PieChartSectionData(
@@ -164,39 +134,46 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
     return allData[day]!.values.fold(0, (a, b) => a + b);
   }
 
-  Color _getColorForDay(String day) {
-    switch (DateFormat('EEEE').format(DateFormat('yyyy-MM-dd').parse(day))) {
-      case 'Monday':
+  Color _getColorForEmotion(String emotion) {
+    switch (emotion) {
+      case 'Happy':
+        return Colors.lightGreen;
+      case 'Sad':
         return Colors.blueAccent;
-      case 'Tuesday':
-        return Colors.greenAccent;
-      case 'Wednesday':
-        return Colors.orangeAccent;
-      case 'Thursday':
-        return Colors.purpleAccent;
-      case 'Friday':
+      case 'Angry':
         return Colors.redAccent;
-      case 'Saturday':
-        return Colors.yellowAccent;
-      case 'Sunday':
-        return Colors.tealAccent;
+      case 'Anxious':
+        return Colors.orangeAccent;
+      case 'Frustrated':
+        return Colors.purple;
+      case 'Stressed':
+        return Colors.grey;
+      case 'Neutral':
+        return Colors.teal;
       default:
-        return Colors.black;
+        return Colors.green;
     }
   }
 
   Widget _buildBarChart() {
+    // Bar chart: x-axis is days of the week, y-axis is total minutes, color by dominant mood
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: 60, // Adjust as needed
-        barGroups: _getCurrentWeekDays().map((day) {
+        maxY: 60, // y-axis up to 60 minutes
+        barGroups: _getCurrentWeekDays().asMap().entries.map((entry) {
+          int i = entry.key;
+          String day = entry.value;
+          final moods = allData[day] ?? {};
+          double total = moods.values.fold(0, (a, b) => a + b).toDouble();
+          // Pick the dominant mood for color
+          String dominantMood = moods.entries.isNotEmpty ? moods.entries.reduce((a, b) => a.value > b.value ? a : b).key : 'Neutral';
           return BarChartGroupData(
-            x: DateFormat('yyyy-MM-dd').parse(day).weekday,
+            x: i,
             barRods: [
               BarChartRodData(
-                toY: _getTotalTimeForDay(day).toDouble(),
-                color: _getColorForDay(day),
+                toY: total,
+                color: _getColorForEmotion(dominantMood),
                 width: 20,
                 borderRadius: BorderRadius.circular(5),
               ),
@@ -212,19 +189,19 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 switch (value.toInt()) {
-                  case 1:
+                  case 0:
                     return Text('Mon', style: TextStyle(color: Colors.black));
-                  case 2:
+                  case 1:
                     return Text('Tue', style: TextStyle(color: Colors.black));
-                  case 3:
+                  case 2:
                     return Text('Wed', style: TextStyle(color: Colors.black));
-                  case 4:
+                  case 3:
                     return Text('Thu', style: TextStyle(color: Colors.black));
-                  case 5:
+                  case 4:
                     return Text('Fri', style: TextStyle(color: Colors.black));
-                  case 6:
+                  case 5:
                     return Text('Sat', style: TextStyle(color: Colors.black));
-                  case 7:
+                  case 6:
                     return Text('Sun', style: TextStyle(color: Colors.black));
                   default:
                     return const Text('');
@@ -236,7 +213,7 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              String day = _getCurrentWeekDays()[group.x.toInt() - 1];
+              String day = _getCurrentWeekDays()[group.x.toInt()];
               return BarTooltipItem(
                 '$day\n${rod.toY.toInt()} mins',
                 TextStyle(
@@ -258,21 +235,6 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
         ),
       ),
     );
-  }
-
-  Color _getColorForEmotion(String emotion) {
-    switch (emotion) {
-      case 'Happy':
-        return Colors.lightGreen;
-      case 'Sad':
-        return Colors.blueAccent;
-      case 'Frustrated':
-        return Colors.purple;
-      case 'Stressed':
-        return Colors.grey;
-      default:
-        return Colors.green;
-    }
   }
 
   @override
