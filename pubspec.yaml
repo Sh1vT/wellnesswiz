@@ -67,6 +67,9 @@ dependencies:
   flutter_snake_navigationbar: ^0.6.1
   flutter_riverpod: ^2.6.1
   http: ^1.4.0
+  csv: ^6.0.0
+  dart_geohash: ^2.1.0
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -97,7 +100,9 @@ flutter:
 
   assets:
     - assets/
+    - assets/data/
     - assets/images/
+    - assets/hospitals/
     - assets/fonts/
     - assets/animations/
     - assets/thought/

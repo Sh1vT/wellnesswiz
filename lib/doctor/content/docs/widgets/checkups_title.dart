@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 class CheckupsTitle extends StatelessWidget {
   const CheckupsTitle({super.key});
@@ -24,7 +25,7 @@ class CheckupsTitle extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 fontFamily: 'Mulish',
                 fontSize: 40,
-                color: const Color.fromRGBO(97, 97, 97, 1)),
+                color: ColorPalette.black),
           ),
         ],
       ),

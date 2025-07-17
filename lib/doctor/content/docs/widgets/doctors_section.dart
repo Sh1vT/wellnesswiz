@@ -1,133 +1,132 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:wellwiz/doctor/content/docs/widgets/doc_view.dart';
+import 'package:wellwiz/utils/hospital_utils.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shimmer/shimmer.dart';
+import 'hospital_card.dart';
+import 'package:wellwiz/utils/color_palette.dart';
+import 'package:wellwiz/utils/hospital_rating_service.dart';
+import 'package:wellwiz/utils/hospital_key.dart';
 
-class DoctorsSection extends StatefulWidget {
-  const DoctorsSection({super.key});
+class NearbyHospitalsSection extends StatefulWidget {
+  final List<Hospital> within20km;
+  final List<Hospital> within5km;
+  final List<Hospital> within1km;
+
+  const NearbyHospitalsSection({
+    Key? key,
+    this.within20km = const [],
+    this.within5km = const [],
+    this.within1km = const [],
+  }) : super(key: key);
 
   @override
-  State<DoctorsSection> createState() => _DoctorsSectionState();
+  State<NearbyHospitalsSection> createState() => _NearbyHospitalsSectionState();
 }
 
-class _DoctorsSectionState extends State<DoctorsSection> {
-  List<Map<String, dynamic>> randomDoctors = [];
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
+  int selectedTier = 0; // 0: 1.5km, 1: 5km, 2: 20km
+
+  Map<String, double> hospitalRatings = {};
+  bool loadingRatings = true;
 
   @override
   void initState() {
     super.initState();
-    fetchRandomDoctors().then((docs) {
-      setState(() {
-        randomDoctors = docs;
-      });
-    });
+    _loadRatings();
   }
 
-  Future<List<Map<String, dynamic>>> fetchRandomDoctors() async {
-    final QuerySnapshot snapshot =
-        await FirebaseFirestore.instance.collection('doctor').get();
-    List<Map<String, dynamic>> doctors =
-        snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-    doctors.shuffle();
-    return doctors.take(3).toList();
+  Future<void> _loadRatings() async {
+    setState(() => loadingRatings = true);
+    final allHospitals = [
+      ...widget.within1km,
+      ...widget.within5km,
+      ...widget.within20km,
+    ];
+    Map<String, double> ratings = {};
+    await Future.wait(allHospitals.map((hospital) async {
+      final key = generateHospitalKey(hospital);
+      final reviews = await HospitalRatingService.getRatingsForHospital(key);
+      if (reviews.isNotEmpty) {
+        final avg = reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
+        ratings[key] = avg;
+      } else {
+        ratings[key] = 0.0;
+      }
+    }));
+    setState(() {
+      hospitalRatings = ratings;
+      loadingRatings = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final tiers = [
+      {'label': '<1.5km', 'hospitals': widget.within1km},
+      {'label': '<5km', 'hospitals': widget.within5km},
+      {'label': '<20km', 'hospitals': widget.within20km},
+    ];
+    final hospitals = tiers[selectedTier]['hospitals'] as List<Hospital>;
+    final green = ColorPalette.green;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 18, bottom: 0),
           child: Text(
-            'Our Doctors',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-              color: Colors.grey.shade700,
-            ),
+            'Nearby Hospitals',
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: ColorPalette.black),
           ),
         ),
-        Container(
-          height: 120,
-          margin: EdgeInsets.only(right: 20, left: 15),
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: randomDoctors.length + 1,
-            itemBuilder: (context, index) {
-              if (index < randomDoctors.length) {
-                final item = randomDoctors[index];
-                return GestureDetector(
-                  onTap: () {},
-                  child: Container(
-                    width: 120,
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    margin: EdgeInsets.symmetric(horizontal: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircleAvatar(
-                            backgroundImage: NetworkImage(item['imageUrl']),
-                            radius: 20,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            item['name'],
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Mulish',
-                              color: Colors.grey.shade800,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
+        Padding(
+          padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 0),
+          child: Row(
+            children: [
+              Wrap(
+                spacing: 6,
+                children: List.generate(3, (i) => ChoiceChip(
+                  label: Text(
+                    tiers[i]['label'] as String,
+                    style: TextStyle(
+                      color: selectedTier == i ? Colors.white : ColorPalette.black,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                );
-              } else {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DocView(userId: _auth.currentUser?.uid ?? ''),
-                      ),
-                    );
+                  selected: selectedTier == i,
+                  selectedColor: green,
+                  backgroundColor: Colors.grey[200],
+                  onSelected: (selected) {
+                    if (selected) setState(() => selectedTier = i);
                   },
-                  child: Container(
-                    width: 50,
-                    margin: EdgeInsets.symmetric(horizontal: 5),
-                    child: SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey.shade300,
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.arrow_forward,
-                            size: 24,
-                            color: Colors.grey.shade800,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }
-            },
+                )),
+              ),
+            ],
           ),
         ),
+        SizedBox(
+          height: 200,
+          child: loadingRatings
+              ? ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 3,
+                  padding: const EdgeInsets.only(left: 8, right: 8),
+                  itemBuilder: (context, index) => const HospitalCardShimmer(),
+                )
+              : hospitals.isEmpty
+                  ? const Center(child: Text('No hospitals found.'))
+                  : ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: hospitals.length,
+                      padding: const EdgeInsets.only(left: 8, right: 8),
+                      itemBuilder: (context, index) {
+                        final hospital = hospitals[index];
+                        final key = generateHospitalKey(hospital);
+                        final avgRating = hospitalRatings[key];
+                        return HospitalCard(hospital: hospital, averageRating: avgRating);
+                      },
+                    ),
+        ),
+        const SizedBox(height: 10),
       ],
     );
   }
