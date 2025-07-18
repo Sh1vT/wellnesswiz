@@ -11,6 +11,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/workmanager_notification_fallback.dart' as workmanager_fallback;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class ReminderPage extends StatefulWidget {
   final String userId;
@@ -57,6 +59,15 @@ class _ReminderPageState extends State<ReminderPage> {
       String title, String description, DateTime scheduledTime) async {
     print('[DEBUG] _addReminder called with title: $title, description: $description, scheduledTime: $scheduledTime');
     try {
+      // Update FCM token in Firestore (merge)
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      if (userId != null && fcmToken != null) {
+        await FirebaseFirestore.instance.collection('users').doc(userId).set({
+          'fcmToken': fcmToken,
+        }, SetOptions(merge: true));
+        print('[DEBUG] FCM token updated in Firestore for user: $userId');
+      }
       await _reminderLogic.addReminder(
           widget.userId, title, description, scheduledTime);
       print('[DEBUG] Reminder added to Firestore');

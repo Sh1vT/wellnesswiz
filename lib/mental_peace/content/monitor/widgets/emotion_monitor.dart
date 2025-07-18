@@ -13,6 +13,7 @@ class EmotionMonitor extends StatefulWidget {
 }
 
 class _EmotionMonitorState extends State<EmotionMonitor> {
+  static const String monitorKey = 'emotion_monitor_data';
   Map<String, Map<String, int>> allData = {};
   String? selectedDay;
   Map<String, int> emotionDistribution = {};
@@ -26,28 +27,24 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
 
   Future<void> _loadData() async {
     _prefs = await SharedPreferences.getInstance();
+    final raw = _prefs.getString(monitorKey);
+    print('[EmotionMonitor] Raw data for key $monitorKey: $raw');
     setState(() {
       allData = _getAllEmotionData();
+      print('[EmotionMonitor] Parsed allData: $allData');
     });
   }
 
   Map<String, Map<String, int>> _getAllEmotionData() {
-    Map<String, Map<String, int>> data = {};
-    for (String key in _prefs.getKeys()) {
-      // Skip known non-emotion keys
-      if (key == 'userimg' || key == 'username' || key == 'scan_grouped_history' || key == 'custom_report_types') continue;
-      // Skip keys that are not String (e.g., List<String> from setStringList)
-      final value = _prefs.get(key);
-      if (value is! String) continue;
-      String jsonData = value;
-      try {
-        Map<String, dynamic> dayData = Map<String, dynamic>.from(jsonDecode(jsonData));
-        data[key] = dayData.map((k, v) => MapEntry(k, v as int));
-      } catch (e) {
-        print('Error decoding JSON for key $key: $e');
-      }
+    final jsonString = _prefs.getString(monitorKey);
+    if (jsonString == null) return {};
+    try {
+      final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(k, Map<String, int>.from(v)));
+    } catch (e) {
+      print('Error decoding emotion monitor data: $e');
+      return {};
     }
-    return data;
   }
 
   void _onBarTap(String day) {

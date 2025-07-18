@@ -18,6 +18,12 @@ import 'package:wellwiz/utils/color_palette.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 // void main() => test.main();
+Future<void> clearEmotionMonitorData() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('emotion_monitor_data');
+  print('[Main] Cleared emotion_monitor_data from SharedPreferences');
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print('main.dart: Firebase.apps.length = ${Firebase.apps.length}');
@@ -81,6 +87,7 @@ void main() async {
     print('Error fetching user location or hospitals: $e');
   }
   // clearOldHealthData();
+  // await clearEmotionMonitorData();
 
   runApp(ProviderScope(child: MyApp()));
 }

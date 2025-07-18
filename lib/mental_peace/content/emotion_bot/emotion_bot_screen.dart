@@ -200,13 +200,21 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
       moodSegments.last.endTime = _endTime;
     }
     String currentDate = DateFormat('yyyy-MM-dd').format(_endTime);
-    Map<String, dynamic> dayData = {};
-    if (_prefs.containsKey(currentDate)) {
-      String? jsonData = _prefs.getString(currentDate);
-      if (jsonData != null) {
-        dayData = Map<String, dynamic>.from(jsonDecode(jsonData));
-      }
+
+    // Load the full emotion monitor data map
+    final prefs = await SharedPreferences.getInstance();
+    Map<String, dynamic> allData = {};
+    final raw = prefs.getString('emotion_monitor_data');
+    if (raw != null) {
+      allData = jsonDecode(raw);
     }
+
+    // Prepare today's data
+    Map<String, dynamic> dayData = {};
+    if (allData.containsKey(currentDate)) {
+      dayData = Map<String, dynamic>.from(allData[currentDate]);
+    }
+
     for (var segment in moodSegments) {
       if (segment.endTime == null) continue;
       int duration = segment.endTime!.difference(segment.startTime).inMinutes;
@@ -217,8 +225,11 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         dayData[segment.mood] = duration;
       }
     }
-    _prefs.setString(currentDate, jsonEncode(dayData));
-    print(dayData);
+
+    // Update the map and save
+    allData[currentDate] = dayData;
+    await prefs.setString('emotion_monitor_data', jsonEncode(allData));
+    print('[EmotionBot] Updated emotion_monitor_data: $allData');
   }
 
   @override

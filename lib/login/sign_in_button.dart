@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class SignInButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String buttontext;
-  final ImageProvider<Object> iconImage;
+  final ImageProvider<Object>? iconImage;
   const SignInButton(
       {super.key,
-      required this.onPressed,
+      this.onPressed,
       required this.buttontext,
-      required this.iconImage});
+      this.iconImage});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class SignInButton extends StatelessWidget {
       child: Container(
         width: 150,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(5),
+          borderRadius: BorderRadius.circular(32),
           border: Border.all(width: 2, color: Colors.grey.shade700,)
         ),
         child: Padding(
@@ -25,12 +25,14 @@ class SignInButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircleAvatar(
-                backgroundImage: iconImage,
-                radius: 10,
-                backgroundColor: Colors.transparent,
-              ),
-              const SizedBox(width: 10),
+              if (iconImage != null) ...[
+                CircleAvatar(
+                  backgroundImage: iconImage,
+                  radius: 10,
+                  backgroundColor: Colors.transparent,
+                ),
+                const SizedBox(width: 10),
+              ],
               Text(
                 buttontext,
                 style: TextStyle(
