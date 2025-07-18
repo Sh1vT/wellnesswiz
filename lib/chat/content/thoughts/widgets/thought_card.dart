@@ -46,15 +46,14 @@ class _ThoughtCardState extends State<ThoughtCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: CarouselSlider.builder(
+    return CarouselSlider.builder(
         carouselController: _carouselController,
         itemCount: thoughts.length,
         options: CarouselOptions(
           height: 340,
-          viewportFraction: 1.0,
+          viewportFraction: 1.0, // Only center card visible
           enlargeCenterPage: false,
+          padEnds: true,
           autoPlay: false, // We handle auto-scroll manually for more control
           enableInfiniteScroll: true,
           initialPage: currentThoughtIndex,
@@ -63,61 +62,83 @@ class _ThoughtCardState extends State<ThoughtCard> {
               currentThoughtIndex = index;
             });
           },
+          scrollPhysics: BouncingScrollPhysics(),
+          pageSnapping: true,
+          scrollDirection: Axis.horizontal,
         ),
         itemBuilder: (context, index, realIdx) {
-          return Column(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12)),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Image.asset(
-                    'assets/thought/${imageIndices[index]}.png',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                  ),
-                ),
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+                bottomLeft: Radius.circular(42),
+                bottomRight: Radius.circular(42),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(42),
-                    bottomRight: Radius.circular(42),
-                  ),
-                  color: Colors.grey.shade800,
+              color: Colors.grey.shade800,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 8,
+                  offset: Offset(0, 4),
                 ),
-                padding:
-                    EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
-                width: double.infinity,
-                child: Column(
-                  children: [
-                    Text(
-                      "“" + thoughts[index] + "”",
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Mulish',
-                          fontSize: 16),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12)),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Image.asset(
+                      'assets/thought/${imageIndices[index]}.png',
+                      fit: BoxFit.cover,
+                      width: double.infinity,
                     ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        "- Wisher   ",
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(42),
+                      bottomRight: Radius.circular(42),
+                    ),
+                    color: Colors.grey.shade800,
+                  ),
+                  padding:
+                      EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
+                  width: double.infinity,
+                  child: Column(
+                    children: [
+                      Text(
+                        "“" + thoughts[index] + "”",
                         style: TextStyle(
+                            color: Colors.white,
                             fontFamily: 'Mulish',
-                            color: Colors.green.shade300,
-                            fontWeight: FontWeight.bold,
                             fontSize: 16),
                       ),
-                    )
-                  ],
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          "- Wisher   ",
+                          style: TextStyle(
+                              fontFamily: 'Mulish',
+                              color: Colors.green.shade300,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         },
-      ),
-    );
+      );
   }
 } 
