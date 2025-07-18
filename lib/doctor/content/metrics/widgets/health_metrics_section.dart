@@ -829,7 +829,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                           ),
                           onSelected: (selected) {
                             if (selected)
-                        setState(() {
+                              setState(() {
                                 selectedReportType = type;
                               });
                           },

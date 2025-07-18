@@ -25,7 +25,7 @@ class ReportTypeSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Select Report Type:",
+          "Select Report Type",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),

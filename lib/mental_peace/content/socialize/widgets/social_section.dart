@@ -4,6 +4,7 @@ import 'package:wellwiz/mental_peace/content/socialize/widgets/chatrooms_tab_con
 import 'package:wellwiz/mental_peace/content/socialize/widgets/comment_sheet.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/feed_tab_content.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/search_tab_content.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 import '../models/chatroom_model.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -120,34 +121,43 @@ class _SocialSectionState extends State<SocialSection> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ChoiceChip(
-            label: Text('Feed'),
+            label: Text('Feed', style: TextStyle(
+              color: selectedTab == 0 ? Colors.white : ColorPalette.black,
+              fontFamily: 'Mulish',
+            )),
             selected: selectedTab == 0,
             onSelected: (_) => setState(() => selectedTab = 0),
-            selectedColor: Color.fromARGB(255, 106, 172, 67),
+            selectedColor: ColorPalette.green,
             labelStyle: TextStyle(
-              color: selectedTab == 0 ? Colors.white : Colors.black,
+              color: selectedTab == 0 ? Colors.white : ColorPalette.black,
               fontFamily: 'Mulish',
             ),
           ),
           SizedBox(width: 12),
           ChoiceChip(
-            label: Text('Chatrooms'),
+            label: Text('Chatrooms', style: TextStyle(
+              color: selectedTab == 1 ? Colors.white : ColorPalette.black,
+              fontFamily: 'Mulish',
+            )),
             selected: selectedTab == 1,
             onSelected: (_) => setState(() => selectedTab = 1),
-            selectedColor: Color.fromARGB(255, 106, 172, 67),
+            selectedColor: ColorPalette.green,
             labelStyle: TextStyle(
-              color: selectedTab == 1 ? Colors.white : Colors.black,
+              color: selectedTab == 1 ? Colors.white : ColorPalette.black,
               fontFamily: 'Mulish',
             ),
           ),
           SizedBox(width: 12),
           ChoiceChip(
-            label: Text('Search'),
+            label: Text('Search', style: TextStyle(
+              color: selectedTab == 2 ? Colors.white : ColorPalette.black,
+              fontFamily: 'Mulish',
+            )),
             selected: selectedTab == 2,
             onSelected: (_) => setState(() => selectedTab = 2),
-            selectedColor: Color.fromARGB(255, 106, 172, 67),
+            selectedColor: ColorPalette.green,
             labelStyle: TextStyle(
-              color: selectedTab == 2 ? Colors.white : Colors.black,
+              color: selectedTab == 2 ? Colors.white : ColorPalette.black,
               fontFamily: 'Mulish',
             ),
           ),

@@ -29,6 +29,10 @@ class _ExtractedMetricsDialogState extends State<ExtractedMetricsDialog> {
   String dialogCustomType = '';
   late List<List<dynamic>> editableMetrics;
   late TextEditingController _customTypeController;
+  // Add controllers for new metric
+  final TextEditingController _newChemicalController = TextEditingController();
+  final TextEditingController _newValueController = TextEditingController();
+  String? _addError;
 
   @override
   void initState() {
@@ -44,6 +48,8 @@ class _ExtractedMetricsDialogState extends State<ExtractedMetricsDialog> {
   @override
   void dispose() {
     _customTypeController.dispose();
+    _newChemicalController.dispose();
+    _newValueController.dispose();
     super.dispose();
   }
 
@@ -175,9 +181,44 @@ class _ExtractedMetricsDialogState extends State<ExtractedMetricsDialog> {
                     children: [
                       TableCell(
                         verticalAlignment: TableCellVerticalAlignment.middle,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(_sanitizeChemicalName(row[0].toString())),
+                        child: Container(
+                          constraints: const BoxConstraints(minHeight: 56),
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    editableMetrics.removeAt(idx);
+                                  });
+                                },
+                                child: Container(
+                                  width: 24,
+                                  height: 24,
+                                  margin: const EdgeInsets.only(right: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.07),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 10,
+                                    color: Colors.black45,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  _sanitizeChemicalName(row[0].toString()),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       TableCell(
@@ -249,7 +290,80 @@ class _ExtractedMetricsDialogState extends State<ExtractedMetricsDialog> {
                 }),
               ],
             ),
-            const SizedBox(height: 12),
+            // Add new metric row
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: _newChemicalController,
+                    decoration: InputDecoration(
+                      labelText: 'Chemical',
+                      labelStyle: TextStyle(fontSize: 12),
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: TextField(
+                    controller: _newValueController,
+                    decoration: InputDecoration(
+                      labelText: 'Value',
+                      labelStyle: TextStyle(fontSize: 12),
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: false),
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: ColorPalette.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    final name = _newChemicalController.text.trim();
+                    final value = _newValueController.text.trim();
+                    if (name.isEmpty || value.isEmpty) {
+                      setState(() { _addError = 'Both fields required.'; });
+                      return;
+                    }
+                    // Accept value with optional unit (e.g. 5.2, 5.2 mg/dL)
+                    final numPart = RegExp(r'^([\d.]+)').firstMatch(value)?.group(1);
+                    if (numPart == null || double.tryParse(numPart) == null) {
+                      setState(() { _addError = 'Value must start with a number.'; });
+                      return;
+                    }
+                    setState(() {
+                      editableMetrics.add([name, value, 0]);
+                      _newChemicalController.clear();
+                      _newValueController.clear();
+                      _addError = null;
+                    });
+                  },
+                  child: const Text('Add', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                ),
+              ],
+            ),
+            if (_addError != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(_addError!, style: TextStyle(color: Colors.red, fontSize: 12)),
+              ),
+            const SizedBox(height: 16),
+            Divider(thickness: 1.2, color: Colors.grey, height: 24),
+            const SizedBox(height: 8),
             ReportTypeSelector(
               reportTypes: widget.reportTypes,
               selectedType: dialogSelectedType,

@@ -15,6 +15,7 @@ import 'package:wellwiz/utils/hospital_utils.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wellwiz/doctor/doctor_page.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -121,7 +122,25 @@ class _MyAppState extends State<MyApp> {
       title: 'WellWiz',
       theme: ThemeData(
         fontFamily: 'Mulish',
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        scaffoldBackgroundColor: Colors.white,
+        primaryColor: ColorPalette.green,
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: ColorPalette.greenSwatch,
+          backgroundColor: Colors.white,
+        ).copyWith(
+          primary: ColorPalette.green,
+          secondary: ColorPalette.green,
+          background: Colors.white,
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onBackground: ColorPalette.black,
+          surface: Colors.white,
+          onSurface: ColorPalette.blackDarker,
+        ),
+        textTheme: ThemeData.light().textTheme.apply(
+          bodyColor: ColorPalette.black,
+          displayColor: ColorPalette.blackDarker,
+        ),
         useMaterial3: true,
       ),
       home: _isLoading

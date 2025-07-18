@@ -93,7 +93,7 @@ class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
                     ),
                   ),
                   selected: selectedTier == i,
-                  selectedColor: green,
+                  selectedColor: ColorPalette.green,
                   backgroundColor: Colors.grey[200],
                   onSelected: (selected) {
                     if (selected) setState(() => selectedTier = i);
