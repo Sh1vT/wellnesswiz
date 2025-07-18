@@ -26,7 +26,7 @@ class ReportTypeSelector extends StatelessWidget {
       children: [
         const Text(
           "Select Report Type",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish'),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -43,6 +43,7 @@ class ReportTypeSelector extends StatelessWidget {
                         color: selectedType == type ? Colors.white : ColorPalette.black,
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
+                        fontFamily: 'Mulish',
                       ),
                     ),
                   ),

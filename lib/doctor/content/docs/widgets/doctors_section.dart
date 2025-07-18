@@ -75,7 +75,7 @@ class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
           padding: const EdgeInsets.only(left: 20, right: 20, top: 18, bottom: 0),
           child: Text(
             'Nearby Hospitals',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: ColorPalette.black),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: ColorPalette.black, fontFamily: 'Mulish'),
           ),
         ),
         Padding(
@@ -90,6 +90,7 @@ class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
                     style: TextStyle(
                       color: selectedTier == i ? Colors.white : ColorPalette.black,
                       fontWeight: FontWeight.w600,
+                      fontFamily: 'Mulish',
                     ),
                   ),
                   selected: selectedTier == i,

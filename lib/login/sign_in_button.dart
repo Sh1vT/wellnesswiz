@@ -36,7 +36,7 @@ class SignInButton extends StatelessWidget {
               Text(
                 buttontext,
                 style: TextStyle(
-                    fontFamily: "Mulish",
+                    fontFamily: 'Mulish',
                     fontSize: 16,
                     color: Colors.grey.shade700,
                     fontWeight: FontWeight.w600),

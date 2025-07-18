@@ -137,19 +137,24 @@ class _SOSAlertButtonState extends State<SOSAlertButton> {
                   width: 20,
                 ),
                 Row(
-                  children: const [
+                  children: [
                     Text(
                       'Send ',
                       style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18),
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontFamily: 'Mulish',
+                      ),
                     ),
                     Text('Alerts',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey,
-                            fontSize: 18)),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        fontSize: 18,
+                        fontFamily: 'Mulish',
+                      ),
+                    ),
                   ],
                 ),
                 Spacer(),

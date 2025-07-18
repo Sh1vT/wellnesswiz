@@ -60,13 +60,15 @@ class SOSContactsButton extends StatelessWidget {
                       style: TextStyle(
                           color: Color.fromARGB(255, 106, 172, 67),
                           fontWeight: FontWeight.bold,
-                          fontSize: 18),
+                          fontSize: 18,
+                          fontFamily: 'Mulish'),
                     ),
                     Text('Contacts',
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.grey,
-                            fontSize: 18)),
+                            fontSize: 18,
+                            fontFamily: 'Mulish')),
                   ],
                 ),
                 Spacer(),

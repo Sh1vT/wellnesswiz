@@ -36,9 +36,11 @@ class LogOutButton extends StatelessWidget {
                 Text(
                   'Log Out',
                   style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red.shade700,
-                      fontSize: 18),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red.shade700,
+                    fontSize: 18,
+                    fontFamily: 'Mulish',
+                  ),
                 ),
                 Spacer(),
                 Icon(

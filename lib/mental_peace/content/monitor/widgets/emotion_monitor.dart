@@ -59,7 +59,7 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
         return AlertDialog(
           title: Text(
             'Your chat sessions for $day',
-            style: TextStyle(fontSize: 18),
+            style: TextStyle(fontSize: 18, fontFamily: 'Mulish'),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -101,14 +101,10 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
             value: time.toDouble(),
             title: '',
             radius: 60,
-            titleStyle: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+            titleStyle: TextStyle(fontFamily: 'Mulish'),
             badgeWidget: Text(
               emotion,
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontFamily: 'Mulish'),
             ),
           );
         }).toList(),
@@ -187,19 +183,19 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
               getTitlesWidget: (value, meta) {
                 switch (value.toInt()) {
                   case 0:
-                    return Text('Mon', style: TextStyle(color: Colors.black));
+                    return Text('Mon', style: TextStyle(color: Colors.black, fontFamily: 'Mulish'));
                   case 1:
-                    return Text('Tue', style: TextStyle(color: Colors.black));
+                    return Text('Tue', style: TextStyle(color: Colors.black, fontFamily: 'Mulish'));
                   case 2:
-                    return Text('Wed', style: TextStyle(color: Colors.black));
+                    return Text('Wed', style: TextStyle(color: Colors.black, fontFamily: 'Mulish'));
                   case 3:
-                    return Text('Thu', style: TextStyle(color: Colors.black));
+                    return Text('Thu', style: TextStyle(color: Colors.black, fontFamily: 'Mulish'));
                   case 4:
-                    return Text('Fri', style: TextStyle(color: Colors.black));
+                    return Text('Fri', style: TextStyle(color: Colors.black, fontFamily: 'Mulish'));
                   case 5:
-                    return Text('Sat', style: TextStyle(color: Colors.black));
+                    return Text('Sat', style: TextStyle(color: Colors.black, fontFamily: 'Mulish'));
                   case 6:
-                    return Text('Sun', style: TextStyle(color: Colors.black));
+                    return Text('Sun', style: TextStyle(color: Colors.black, fontFamily: 'Mulish'));
                   default:
                     return const Text('');
                 }
@@ -246,7 +242,8 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
             style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
-                color: Colors.grey.shade700),
+                color: Colors.grey.shade700,
+                fontFamily: 'Mulish'),
           ),
         ),
         Padding(

@@ -63,7 +63,7 @@ class _MetricTrendChartState extends State<MetricTrendChart> {
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: dateLabels.map((label) => Text(label, style: const TextStyle(fontSize: 10))).toList(),
+                    children: dateLabels.map((label) => Text(label, style: const TextStyle(fontSize: 10, fontFamily: 'Mulish'))).toList(),
                   ),
                 ],
               ),
@@ -138,7 +138,7 @@ class _TrendLinePainter extends CustomPainter {
     }
     canvas.drawPath(path, linePaint);
     // Y axis labels
-    final textStyle = const TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.bold);
+    final textStyle = const TextStyle(fontSize: 12, color: Colors.black, fontWeight: FontWeight.bold, fontFamily: 'Mulish');
     final textPainterMin = TextPainter(
       text: TextSpan(text: minVal.toStringAsFixed(1), style: textStyle),
       textDirection: ui.TextDirection.ltr,

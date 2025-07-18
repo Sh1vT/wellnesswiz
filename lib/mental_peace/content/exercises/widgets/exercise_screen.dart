@@ -156,7 +156,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
             }),
         title: Text(
           widget.exercise + " Breathing",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, fontFamily: 'Mulish'),
         ),
         centerTitle: true,
       ),
@@ -174,7 +174,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
               child: Text(
                 _currentInstruction,
                 style: TextStyle(
-                    fontSize: 30, color: Color.fromRGBO(106, 172, 67, 1)),
+                    fontSize: 30, color: Color.fromRGBO(106, 172, 67, 1), fontFamily: 'Mulish'),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -202,11 +202,12 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                     color: Color.fromRGBO(106, 172, 67, 1),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    fontFamily: 'Mulish',
                   ),
                 ),
                 Text(
                   '${_totalDuration - _elapsedTime} seconds',
-                  style: TextStyle(fontSize: 16, color: Colors.black),
+                  style: TextStyle(fontSize: 16, color: Colors.black, fontFamily: 'Mulish'),
                 ),
               ],
             ),

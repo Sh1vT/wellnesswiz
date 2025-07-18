@@ -182,7 +182,7 @@ class _ChatRoomSelectionScreenState extends State<ChatRoomSelectionScreen> {
                             children: [
                               Text(
                                 'Anonymous Room',
-                                style: TextStyle(fontSize: 18),
+                                style: TextStyle(fontSize: 18, fontFamily: 'Mulish'),
                               ),
                               Row(children: [
                                 Text(
@@ -193,7 +193,7 @@ class _ChatRoomSelectionScreenState extends State<ChatRoomSelectionScreen> {
                                 ),
                                 Text(
                                   topic,
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                  style: TextStyle(fontWeight: FontWeight.w600, fontFamily: 'Mulish'),
                                 )
                               ]),
                             ],

@@ -40,7 +40,7 @@ class PostTile extends StatelessWidget {
             ),
             if (post.content.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Text(post.content, style: const TextStyle(fontSize: 16)),
+              Text(post.content, style: const TextStyle(fontSize: 16, fontFamily: 'Mulish')),
             ],
             if (post.imageUrl.isNotEmpty) ...[
               const SizedBox(height: 12),
