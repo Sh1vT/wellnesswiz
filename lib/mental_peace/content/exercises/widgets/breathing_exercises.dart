@@ -70,11 +70,12 @@ class BreathingExercises extends StatelessWidget {
             style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
+                fontFamily: 'Mulish',
                 color: Colors.grey.shade700),
           ),
         ),
         Container(
-          margin: EdgeInsets.only(left: 20),
+          // margin: EdgeInsets.only(left: 20),
           height: 100,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
@@ -84,33 +85,40 @@ class BreathingExercises extends StatelessWidget {
                 onTap: () {
                   _showConfirmationDialog(context, exercises[index]);
                 },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 30),
-                  margin: EdgeInsets.symmetric(horizontal: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                child: Card(
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          breathingIcons[index],
-                          size: 40,
-                          color: Color.fromARGB(255, 106, 172, 67),
-                        ),
-                        Text(
-                          exercises[index],
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Mulish',
-                            color: Colors.grey.shade800,
+                  elevation: 2,
+                  margin: EdgeInsets.only(left: 20, top: 8, bottom: 8),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 30),
+                    // margin: EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            breathingIcons[index],
+                            size: 40,
+                            color: Color.fromARGB(255, 106, 172, 67),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                          Text(
+                            exercises[index],
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Mulish',
+                              color: Colors.grey.shade800,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

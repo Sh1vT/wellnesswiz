@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 class TraitsSection extends StatefulWidget {
   const TraitsSection({super.key});
@@ -59,32 +60,40 @@ class _TraitsSectionState extends State<TraitsSection> {
     _populateProfile();
   }
 
-  void _showAddProfileDialog(BuildContext context) {
-    TextEditingController _controller = TextEditingController();
+  void _showTraitDialog(BuildContext context, {String? initialValue, String? editKey}) {
+    TextEditingController _controller = TextEditingController(text: initialValue ?? '');
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Add New Profile Entry'),
+          title: Text(editKey == null ? 'New Trait' : 'Edit Trait'),
           content: TextField(
             controller: _controller,
-            decoration: const InputDecoration(hintText: 'Enter profile detail'),
+            decoration: const InputDecoration(hintText: 'Details'),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: ColorPalette.black)),
             ),
             TextButton(
-              onPressed: () {
+              style: TextButton.styleFrom(
+                backgroundColor: ColorPalette.green,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () async {
                 if (_controller.text.isNotEmpty) {
-                  _addProfileValue(_controller.text);
+                  if (editKey != null) {
+                    await _editProfileValue(editKey, _controller.text);
+                  } else {
+                    _addProfileValue(_controller.text);
+                  }
                 }
                 Navigator.of(context).pop();
               },
-              child: const Text('Add'),
+              child: Text(editKey == null ? 'Add' : 'Save'),
             ),
           ],
         );
@@ -92,150 +101,144 @@ class _TraitsSectionState extends State<TraitsSection> {
     );
   }
 
+  Future<void> _editProfileValue(String key, String newValue) async {
+    final pref = await SharedPreferences.getInstance();
+    setState(() {
+      profileMap[key] = newValue;
+    });
+    String updatedProfile = jsonEncode(profileMap);
+    await pref.setString('prof', updatedProfile);
+    _populateProfile();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300, width: 2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  topRight: Radius.circular(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title and add button row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                'Traits',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: ColorPalette.black,
+                  fontFamily: 'Mulish',
                 ),
-                color: Colors.grey.shade300,
               ),
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
+            ],
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ActionChip(
+              avatar: Icon(Icons.add, color: Colors.white, size: 20),
+              label: Text('Add', style: TextStyle(color: Colors.white, fontFamily: 'Mulish', fontWeight: FontWeight.w600)),
+              backgroundColor: Color.fromARGB(255, 96, 168, 82),
+              onPressed: () => _showTraitDialog(context),
+              elevation: 2,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (emptyNow)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 0),
+              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: ColorPalette.greenSwatch[50],
+              ),
+              child: const Center(
+                child: Text(
+                  'Add something about yourself!',
+                  style: TextStyle(fontFamily: 'Mulish', fontSize: 14, color: ColorPalette.black),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: profileMap.length,
+              itemBuilder: (context, index) {
+                String key = profileMap.keys.elementAt(index);
+                String value = profileMap[key]!;
+                String datePart = key.split(' ')[0];
+                return Card(
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
                     child: Row(
                       children: [
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _isExpanded = !_isExpanded;
-                            });
-                          },
-                          icon: Icon(
-                            !_isExpanded
-                                ? Icons.arrow_right_rounded
-                                : Icons.arrow_drop_down_rounded,
-                            color: Color.fromARGB(255, 96, 168, 82),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Created on : $datePart",
+                                style: TextStyle(
+                                  color: Colors.grey.shade500,
+                                  fontFamily: 'Mulish',
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                value,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontFamily: 'Mulish',
+                                  fontSize: 16,
+                                ),
+                                maxLines: null,
+                                overflow: TextOverflow.visible,
+                              ),
+                            ],
                           ),
                         ),
-                        Expanded(
-                          child: Text(
-                            'Your Traits',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
-                              fontFamily: 'Mulish',
+                        IconButton(
+                          onPressed: () {
+                            _showTraitDialog(context, initialValue: value, editKey: key);
+                          },
+                          icon: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              shape: BoxShape.circle,
                             ),
+                            padding: EdgeInsets.all(6),
+                            child: Icon(Icons.edit, color: ColorPalette.black, size: 18),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            _deleteProfileValue(key);
+                          },
+                          icon: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              shape: BoxShape.circle,
+                            ),
+                            padding: EdgeInsets.all(6),
+                            child: Icon(Icons.delete, color: ColorPalette.black, size: 18),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.add_box_outlined,
-                        color: Color.fromARGB(255, 96, 168, 82)),
-                    onPressed: () {
-                      _showAddProfileDialog(context);
-                    },
-                  ),
-                ],
-              ),
+                );
+              },
             ),
-            if (_isExpanded) ...[
-              SizedBox(height: 15),
-              emptyNow
-                  ? Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16),
-                      height: 60,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.green.shade100,
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Add something about yourself!',
-                          style: TextStyle(fontFamily: 'Mulish'),
-                        ),
-                      ),
-                    )
-                  : Container(
-                      height: 200,
-                      child: ListView.builder(
-                        physics: AlwaysScrollableScrollPhysics(),
-                        itemCount: profileMap.length,
-                        itemBuilder: (context, index) {
-                          String key = profileMap.keys.elementAt(index);
-                          String value = profileMap[key]!;
-                          String datePart = key.split(' ')[0];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 8.0),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Color.fromARGB(255, 96, 168, 82),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: const EdgeInsets.all(8),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Created on : $datePart",
-                                          style: TextStyle(
-                                            color: Colors.grey.shade100,
-                                            fontFamily: 'Mulish',
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        Text(
-                                          value,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontFamily: 'Mulish',
-                                            fontSize: 16,
-                                          ),
-                                          maxLines: null,
-                                          overflow: TextOverflow.visible,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      _deleteProfileValue(key);
-                                    },
-                                    icon: Icon(Icons.delete,
-                                        color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-              SizedBox(height: 15),
-            ],
-          ],
-        ),
+        ],
       ),
     );
   }

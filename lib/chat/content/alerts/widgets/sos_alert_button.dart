@@ -119,50 +119,56 @@ class _SOSAlertButtonState extends State<SOSAlertButton> {
       onTap: _sosprotocol,
       child: Padding(
         padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          height: 80,
-          decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: const BorderRadius.all(Radius.circular(12))),
-          child: Center(
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.alarm,
-                  size: 40,
-                  color: Colors.red,
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                Row(
-                  children: [
-                    Text(
-                      'Send ',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        fontFamily: 'Mulish',
+        child: Card(
+          elevation: 2,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            height: 80,
+            decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: const BorderRadius.all(Radius.circular(12))),
+            child: Center(
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.alarm,
+                    size: 40,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Send ',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          fontFamily: 'Mulish',
+                        ),
                       ),
-                    ),
-                    Text('Alerts',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                        fontSize: 18,
-                        fontFamily: 'Mulish',
+                      Text('Alerts',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                          fontSize: 18,
+                          fontFamily: 'Mulish',
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Spacer(),
-                const Icon(
-                  Icons.navigate_next_rounded,
-                  color: Colors.grey,
-                ),
-              ],
+                    ],
+                  ),
+                  Spacer(),
+                  const Icon(
+                    Icons.navigate_next_rounded,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

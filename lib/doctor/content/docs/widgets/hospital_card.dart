@@ -31,7 +31,7 @@ class HospitalCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Card(
         elevation: 2,
-        color: Colors.grey.shade50,
+        color: Colors.white,
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
           onTap: () => _showDetails(context),

@@ -848,7 +848,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                         Card(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Column(

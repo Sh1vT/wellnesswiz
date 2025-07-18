@@ -47,6 +47,7 @@ class _DoctorPageState extends State<DoctorPage> {
         const PrescriptionsSection(),
         const SizedBox(height: 20),
         const TraitsSection(),
+        const SizedBox(height: 20),
       ],
     );
   }

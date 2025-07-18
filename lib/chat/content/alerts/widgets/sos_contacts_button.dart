@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wellwiz/chat/content/alerts/widgets/emergency_service.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 class SOSContactsButton extends StatelessWidget {
   const SOSContactsButton({super.key});
@@ -36,47 +37,52 @@ class SOSContactsButton extends StatelessWidget {
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          height: 80,
-          decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: const BorderRadius.all(Radius.circular(12))),
-          child: Center(
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.notifications_active_outlined,
-                  size: 40,
-                  color: Colors.grey,
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                Row(
-                  children: const [
-                    Text(
-                      'SOS ',
-                      style: TextStyle(
-                          color: Color.fromARGB(255, 106, 172, 67),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          fontFamily: 'Mulish'),
-                    ),
-                    Text('Contacts',
+        child: Card(
+          elevation: 2,
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(12))),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            height: 80,
+            decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: const BorderRadius.all(Radius.circular(12))),
+            child: Center(
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.notifications_active_outlined,
+                    size: 40,
+                    color: ColorPalette.green,
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  Row(
+                    children: const [
+                      Text(
+                        'SOS ',
                         style: TextStyle(
+                            color: Color.fromARGB(255, 106, 172, 67),
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey,
                             fontSize: 18,
-                            fontFamily: 'Mulish')),
-                  ],
-                ),
-                Spacer(),
-                const Icon(
-                  Icons.navigate_next_rounded,
-                  color: Colors.grey,
-                ),
-              ],
+                            fontFamily: 'Mulish'),
+                      ),
+                      Text('Contacts',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                              fontSize: 18,
+                              fontFamily: 'Mulish')),
+                    ],
+                  ),
+                  Spacer(),
+                  const Icon(
+                    Icons.navigate_next_rounded,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

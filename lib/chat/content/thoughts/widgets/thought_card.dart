@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 
 class ThoughtCard extends StatefulWidget {
   const ThoughtCard({super.key});
@@ -9,8 +10,9 @@ class ThoughtCard extends StatefulWidget {
 }
 
 class _ThoughtCardState extends State<ThoughtCard> {
-  int randomImageIndex = 1;
   int currentThoughtIndex = 0;
+  late List<int> imageIndices;
+  final CarouselSliderController _carouselController = CarouselSliderController();
 
   final List<String> thoughts = [
     "In the garden of health, every breath is a petal, every heartbeat a bloom.",
@@ -28,82 +30,93 @@ class _ThoughtCardState extends State<ThoughtCard> {
   @override
   void initState() {
     super.initState();
-    randomImageIndex = Random().nextInt(7);
-    currentThoughtIndex = Random().nextInt(thoughts.length);
+    final rand = Random();
+    // Assign a random image index to each thought
+    imageIndices = List.generate(thoughts.length, (_) => rand.nextInt(7));
+    currentThoughtIndex = rand.nextInt(thoughts.length);
+    // Start auto-scroll
+    Future.delayed(const Duration(seconds: 10), _autoScroll);
   }
 
-  void showNextThought() {
-    setState(() {
-      randomImageIndex = Random().nextInt(7);
-      int newIndex;
-      do {
-        newIndex = Random().nextInt(thoughts.length);
-      } while (newIndex == currentThoughtIndex && thoughts.length > 1);
-      currentThoughtIndex = newIndex;
-    });
+  void _autoScroll() {
+    if (!mounted) return;
+    _carouselController.nextPage(duration: Duration(milliseconds: 600));
+    Future.delayed(const Duration(seconds: 10), _autoScroll);
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20),
-      child: Dismissible(
-        key: UniqueKey(),
-        direction: DismissDirection.horizontal,
-        onDismissed: (direction) {
-          showNextThought();
-        },
-        child: Column(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12)),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Image.asset(
-                  'assets/thought/${randomImageIndex}.png',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
+      child: CarouselSlider.builder(
+        carouselController: _carouselController,
+        itemCount: thoughts.length,
+        options: CarouselOptions(
+          height: 340,
+          viewportFraction: 1.0,
+          enlargeCenterPage: false,
+          autoPlay: false, // We handle auto-scroll manually for more control
+          enableInfiniteScroll: true,
+          initialPage: currentThoughtIndex,
+          onPageChanged: (index, reason) {
+            setState(() {
+              currentThoughtIndex = index;
+            });
+          },
+        ),
+        itemBuilder: (context, index, realIdx) {
+          return Column(
+            children: [
+              ClipRRect(
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(42),
-                  bottomRight: Radius.circular(42),
-                ),
-                color: Colors.grey.shade800,
-              ),
-              padding:
-                  EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
-              width: double.infinity,
-              child: Column(
-                children: [
-                  Text(
-                    "“" + thoughts[currentThoughtIndex] + "”",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Mulish',
-                        fontSize: 16),
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12)),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Image.asset(
+                    'assets/thought/${imageIndices[index]}.png',
+                    fit: BoxFit.cover,
+                    width: double.infinity,
                   ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      "- Wisher   ",
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(42),
+                    bottomRight: Radius.circular(42),
+                  ),
+                  color: Colors.grey.shade800,
+                ),
+                padding:
+                    EdgeInsets.only(left: 20, right: 20, bottom: 30, top: 20),
+                width: double.infinity,
+                child: Column(
+                  children: [
+                    Text(
+                      "“" + thoughts[index] + "”",
                       style: TextStyle(
+                          color: Colors.white,
                           fontFamily: 'Mulish',
-                          color: Colors.green.shade300,
-                          fontWeight: FontWeight.bold,
                           fontSize: 16),
                     ),
-                  )
-                ],
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        "- Wisher   ",
+                        style: TextStyle(
+                            fontFamily: 'Mulish',
+                            color: Colors.green.shade300,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
   }

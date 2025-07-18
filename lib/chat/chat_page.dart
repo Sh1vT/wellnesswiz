@@ -14,7 +14,7 @@ class ChatPage extends StatelessWidget {
       padding: EdgeInsets.zero,
       children: [
         Container(
-          height: 50,
+          height: 60,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

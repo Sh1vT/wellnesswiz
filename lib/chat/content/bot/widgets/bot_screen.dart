@@ -25,6 +25,7 @@ import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.d
 // TODO: Modularize and import emergency_service.dart from the new location
 // import 'package:wellwiz/chat/content/widgets/emergency_service.dart';
 import 'package:wellwiz/secrets.dart';
+import 'package:wellwiz/doctor/content/prescriptions/models/prescription.dart';
 
 class BotScreen extends StatefulWidget {
   const BotScreen({super.key});
@@ -352,44 +353,34 @@ class _BotScreenState extends State<BotScreen> {
 
   void _startTabulatingPrescriptions(String message) async {
     final SharedPreferences pref = await SharedPreferences.getInstance();
-
-    // Fetch the existing prescription list from SharedPreferences
     String? prescriptionsJson = pref.getString("prescriptions");
-    List<List<dynamic>> prescriptionsList = [];
-
-    if (prescriptionsJson != null && prescriptionsJson.isNotEmpty) {
-      try {
-        prescriptionsList = List<List<dynamic>>.from(
-            jsonDecode(prescriptionsJson)
-                .map((item) => List<dynamic>.from(item)));
-      } catch (e) {
-        print("Error decoding JSON: $e");
-      }
-    }
+    List<Prescription> prescriptionsList = prescriptionsJson != null && prescriptionsJson.isNotEmpty
+        ? Prescription.listFromJson(prescriptionsJson)
+        : [];
 
     // Prepare the prompt for the model
     String prompt = """
-  You're being used for demonstration purposes only. 
+You're being used for demonstration purposes only. 
 Analyze the following message for any mentions of medication and dosage. 
-A proper response should be in the format "Medication : Dosage" where both values are directly taken from the message provided.
+A proper response should be in the format \"Medication : Dosage\" where both values are directly taken from the message provided.
 Do not generate or assume medications or dosages that are not explicitly mentioned in the message.
 
 Examples:
-- "I have been asked to take apixaban 5 mg every day" -> "Apixaban : 5 mg"
-- "I have been prescribed 20 mg of aspirin" -> "Aspirin : 20 mg"
+- \"I have been asked to take apixaban 5 mg every day\" -> \"Apixaban : 5 mg\"
+- \"I have been prescribed 20 mg of aspirin\" -> \"Aspirin : 20 mg\"
 
 The message starts now: $message.
 The message has ended.
 
-If there is no mention of a medication or dosage, respond with "none."
-  """;
+If there is no mention of a medication or dosage, respond with \"none.\"
+""";
 
     var content = [Content.text(prompt)];
     final response = await _model.generateContent(content);
 
     // Exit early if the response is "none"
     if (response.text!.toLowerCase().trim() == "none") {
-      print('Model response: ${response.text}');
+      print('Model response:  [33m${response.text} [0m');
       return;
     }
     print('triggered');
@@ -397,29 +388,39 @@ If there is no mention of a medication or dosage, respond with "none."
     // Split the response into medication and dosage
     List<String> parts = response.text!.split(':');
     if (parts.length == 2) {
-      print('Model response: ${response.text}');
       String medication = parts[0].trim();
       String dosage = parts[1].trim();
 
       // Check if the medication already exists in the list, update if necessary
       bool found = false;
       for (var entry in prescriptionsList) {
-        if (entry[0] == medication) {
-          entry[1] = dosage; // Update dosage
+        if (entry.medicineName == medication) {
+          entry = Prescription(
+            medicineName: medication,
+            dosage: dosage,
+            times: entry.times,
+            startDate: entry.startDate,
+            endDate: entry.endDate,
+            instructions: entry.instructions,
+          );
           found = true;
           break;
         }
       }
-
-      // If the medication is not found, add a new entry
+      // If the medication is not found, add a new entry (default time: 08:00, today as startDate)
       if (!found) {
-        prescriptionsList.add([medication, dosage]);
+        prescriptionsList.add(Prescription(
+          medicineName: medication,
+          dosage: dosage,
+          times: ["08:00"],
+          startDate: DateTime.now(),
+          endDate: null,
+          instructions: null,
+        ));
       }
-
       // Save the updated list back to SharedPreferences
-      prescriptionsJson = jsonEncode(prescriptionsList);
+      prescriptionsJson = Prescription.listToJson(prescriptionsList);
       pref.setString('prescriptions', prescriptionsJson);
-
       print(prescriptionsList);
     }
   }
