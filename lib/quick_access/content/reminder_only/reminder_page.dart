@@ -7,6 +7,10 @@ import 'package:wellwiz/quick_access/content/reminder_only/reminder_model.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
 import 'reminder_logic.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
+import 'package:wellwiz/quick_access/content/reminder_only/workmanager_notification_fallback.dart' as workmanager_fallback;
 
 class ReminderPage extends StatefulWidget {
   final String userId;
@@ -46,15 +50,33 @@ class _ReminderPageState extends State<ReminderPage> {
     setState(() {
       _reminders = reminders;
     });
-
-    await _reminderLogic.scheduleReminders(_reminders);
+    // Removed: await _reminderLogic.scheduleReminders(_reminders);
   }
 
   Future<void> _addReminder(
       String title, String description, DateTime scheduledTime) async {
-    await _reminderLogic.addReminder(
-        widget.userId, title, description, scheduledTime);
-    _fetchReminders();
+    print('[DEBUG] _addReminder called with title: $title, description: $description, scheduledTime: $scheduledTime');
+    try {
+      await _reminderLogic.addReminder(
+          widget.userId, title, description, scheduledTime);
+      print('[DEBUG] Reminder added to Firestore');
+      // Schedule WorkManager notification fallback
+      final delay = scheduledTime.difference(DateTime.now()).inSeconds;
+      print('[DEBUG] Calculated delay for WorkManager: $delay seconds');
+      if (delay > 0) {
+        await workmanager_fallback.WorkManagerNotificationFallbackTest().scheduleWorkManagerNotification(delay);
+        print('[DEBUG] WorkManager notification scheduled');
+      } else {
+        print('[DEBUG] Delay not positive, notification not scheduled');
+      }
+      _fetchReminders();
+    } catch (e) {
+      print('[DEBUG] Error in _addReminder: $e');
+      // Show a generic error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to add reminder: \\${e.toString()}')),
+      );
+    }
   }
 
   Future<void> _deleteReminder(Reminder reminder) async {
@@ -255,10 +277,32 @@ class _ReminderPageState extends State<ReminderPage> {
           ),
         ],
       ),
+      // Remove floatingActionButton
     );
   }
 
-  void _showAddReminderDialog() {
+  void _showAddReminderDialog() async {
+    print('[DEBUG] _showAddReminderDialog called');
+    // Request notification permission first
+    final status = await Permission.notification.request();
+    print('[DEBUG] Notification permission status: \\${status.toString()}');
+    if (!status.isGranted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Notification Permission Required'),
+          content: const Text('Please enable notifications to receive reminders.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      print('[DEBUG] Notification permission not granted, dialog shown');
+      return;
+    }
     String title = '';
     String description = '';
     DateTime? scheduledTime;
@@ -303,6 +347,7 @@ class _ReminderPageState extends State<ReminderPage> {
                         selectedTime.hour,
                         selectedTime.minute,
                       );
+                      print('[DEBUG] User selected scheduledTime: $scheduledTime');
                     }
                   }
                 },
@@ -321,11 +366,14 @@ class _ReminderPageState extends State<ReminderPage> {
                   title = titleController.text;
                   description = descController.text;
                 });
+                print('[DEBUG] Add button pressed with title: $title, description: $description, scheduledTime: $scheduledTime');
                 if (title.isNotEmpty &&
                     description.isNotEmpty &&
                     scheduledTime != null) {
                   _addReminder(title, description, scheduledTime!);
                   Navigator.of(context).pop();
+                } else {
+                  print('[DEBUG] Invalid input, reminder not added');
                 }
               },
             ),

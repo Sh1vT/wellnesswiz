@@ -47,7 +47,7 @@ class _ReminderPageState extends State<ReminderPage> {
       _reminders = reminders;
     });
 
-    await _reminderLogic.scheduleReminders(_reminders);
+    // await _reminderLogic.scheduleReminders(_reminders);
   }
 
   Future<void> _addReminder(

@@ -7,8 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:wellwiz/globalScaffold/global_scaffold.dart';
 import 'package:wellwiz/login/login_page.dart';
-import 'package:wellwiz/quick_access/content/reminder_only/notification_service.dart';
-import 'package:wellwiz/quick_access/content/reminder_only/workmanager_handler.dart';
+import 'package:wellwiz/quick_access/content/reminder_only/workmanager_notification_fallback.dart' show callbackDispatcher;
 import 'package:wellwiz/utils/achievement_uploader.dart';
 import 'package:wellwiz/utils/chatroom_uploader.dart';
 import 'package:wellwiz/utils/hospital_utils.dart';
@@ -16,7 +15,9 @@ import 'package:workmanager/workmanager.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wellwiz/doctor/doctor_page.dart';
 import 'package:wellwiz/utils/color_palette.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
+// void main() => test.main();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   print('main.dart: Firebase.apps.length = ${Firebase.apps.length}');
@@ -30,11 +31,20 @@ void main() async {
     print('main.dart: Firebase already initialized');
   }
 
-  tz.initializeTimeZones();
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  // FCM setup
+  NotificationSettings settings = await FirebaseMessaging.instance.requestPermission();
+  print('FCM permission status: ${settings.authorizationStatus}');
+  String? fcmToken = await FirebaseMessaging.instance.getToken();
+  print('FCM Token: ${fcmToken ?? "(null)"}');
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('FCM onMessage: ${message.notification?.title} - ${message.notification?.body}');
+  });
 
-  final NotificationService notificationService = NotificationService();
-  await notificationService.init();
+  tz.initializeTimeZones();
+  await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+
+  // final NotificationService notificationService = NotificationService();
+  // await notificationService.init();
 
   // uploadSampleAchievements();
   // uploadSampleChatrooms();

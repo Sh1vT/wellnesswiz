@@ -1,4 +1,3 @@
-import 'package:wellwiz/quick_access/content/reminder_only/notification_service.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:wellwiz/secrets.dart';
@@ -8,7 +7,7 @@ import 'package:flutter/material.dart'; // For TimeOfDay
 class ThoughtsService {
   late final GenerativeModel _model;
   static const String _apiKey = geminikey; 
-  final NotificationService _notificationService = NotificationService(); // Instantiate NotificationService
+  // final NotificationService _notificationService = NotificationService(); // Instantiate NotificationService
 
   ThoughtsService() {
     _model = GenerativeModel(
