@@ -26,6 +26,8 @@ import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.d
 // import 'package:wellwiz/chat/content/widgets/emergency_service.dart';
 import 'package:wellwiz/secrets.dart';
 import 'package:wellwiz/doctor/content/prescriptions/models/prescription.dart';
+import 'package:wellwiz/utils/message_tile.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 class BotScreen extends StatefulWidget {
   const BotScreen({super.key});
@@ -54,14 +56,17 @@ class _BotScreenState extends State<BotScreen> {
   List contacts = [];
   String username = "";
   String userimg = "";
-  final SpeechToText _speechToText = SpeechToText();
-  bool _speechEnabled = false;
-  String _lastWords = '';
+  String? userimgUrl;
+  // 1. Remove SpeechToText and related fields
+  // 2. Remove Permission.microphone and Permission.speech requests
+  // 3. Remove mic button UI and handlers
+  // 4. Only allow sending text messages
   bool _charloading = false;
   late File _image;
   bool imageInitialized = false;
   final Telephony telephony = Telephony.instance;
   static const String _unsyncedKey = 'unsynced_messages';
+  String? _userImg;
 
   void _scrollDown() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -91,12 +96,6 @@ class _BotScreenState extends State<BotScreen> {
         await chats.add({
           'isUser': chat.isUser,
           'text': chat.text,
-          'hasButton': chat.hasButton,
-          'button': chat.button != null
-              ? {
-                  'label': chat.button!.label,
-                }
-              : null,
           'timestamp': Timestamp.now(),
         });
       }
@@ -191,13 +190,7 @@ class _BotScreenState extends State<BotScreen> {
         return ChatResponse(
           isUser: data['isUser'] as bool? ?? false,
           text: data['text'] as String?,
-          hasButton: data['hasButton'] as bool? ?? false,
-          button: data['button'] != null
-              ? ChatButton(
-                  label: data['button']['label'] as String? ?? '',
-                  onPressed: () {}, // Placeholder; adjust as needed
-                )
-              : null,
+          timestamp: (data['timestamp'] as Timestamp?)?.toDate(),
         );
       }).toList();
 
@@ -238,6 +231,7 @@ class _BotScreenState extends State<BotScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showDisclaimerDialog());
     _model = GenerativeModel(
         model: 'gemini-2.0-flash-lite',
         apiKey: _apiKey,
@@ -246,10 +240,61 @@ class _BotScreenState extends State<BotScreen> {
     _syncUnsyncedMessages();
     _loadChatHistory();
     _getUserInfo();
-    _initSpeech();
-    // _clearProfileValues();
-    // _testFirestorePermissions();
     _setupFCM();
+    _fetchUserAvatar();
+    _initializeSharedPreferences();
+  }
+
+  void _showDisclaimerDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text('Disclaimer', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
+        content: Text(
+          'This is just an AI assistant powered by Gemini API. It cannot replace human doctors or medical institutes. Use it as an assistant, not for medical advice.',
+          style: TextStyle(fontFamily: 'Mulish'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            child: Text('Back', style: TextStyle(fontFamily: 'Mulish', color: ColorPalette.black)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromARGB(255, 106, 172, 67),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('Alright', style: TextStyle(fontFamily: 'Mulish', color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _initializeSharedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userImg = prefs.getString('userimg');
+    });
+  }
+
+  Future<void> _fetchUserAvatar() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final data = doc.data();
+    if (data != null && data['profilePicUrl'] != null && data['profilePicUrl'].toString().isNotEmpty) {
+      setState(() {
+        userimgUrl = data['profilePicUrl'];
+      });
+    }
   }
 
   @override
@@ -503,6 +548,9 @@ If there is no mention of a medication or dosage, respond with \"none.\"
     }
     // print("symptomloop function");
     // print("pred value : $symptomprediction");
+    setState(() {
+      _addMessage(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
+    });
     _startTabulating(message);
     _startTabulatingPrescriptions(message);
     QuerySnapshot querySnapshot = await _firestore.collection('doctor').get();
@@ -522,24 +570,20 @@ If there is no mention of a medication or dosage, respond with \"none.\"
     // print("receive");
     // print(response.text!);
     // print(response.text!);
-    if (response.text!.toLowerCase().trim().contains("done")) {
-      String text = response.text!;
-      List<String> lines = text.split('\n');
-      List<String> newLines = lines.sublist(0, lines.length - 2);
-      String modifiedText = newLines.join('\n');
-      setState(() {
-        _addMessage(ChatResponse(isUser: false, text: modifiedText));
+    setState(() {
+      if (response.text!.toLowerCase().trim().contains("done")) {
+        String text = response.text!;
+        List<String> lines = text.split('\n');
+        List<String> newLines = lines.sublist(0, lines.length - 2);
+        String modifiedText = newLines.join('\n');
+        _addMessage(ChatResponse(isUser: false, text: modifiedText, timestamp: DateTime.now()));
         symptomprediction = false;
         // print(symptomprediction);
         _loading = false;
         _scrollDown();
-      });
-      return;
-    }
-    setState(() {
-      _addMessage(ChatResponse(isUser: false, text: response.text));
-      _loading = false;
-      _scrollDown();
+      } else {
+        _addMessage(ChatResponse(isUser: false, text: response.text, timestamp: DateTime.now()));
+      }
     });
   }
 
@@ -751,37 +795,12 @@ If there is no mention of a medication or dosage, respond with \"none.\"
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? profile = prefs.getString('prof');
       String prompt =
-          """You are being used as a medical chatbot for health related queries or appointment scheduling. 
-          It is only a demonstration prototype and you are not being used for something professional or commercial. 
-          The user will enter his message now: $message. User message has ended. 
-          The user can also have a profile section where they may have been asked to avoid or take care of some things. 
-          The profile section starts now: $profile. Profile section has ended. 
-          Respond naturally to the user as a chatbot, but if the user is asking some advice then and only then use the profile section. 
-          Also if the user is asking for appointment booking, simply respond with the word "appointment" and nothing else. 
-          Also if the user is asking for scanning a report or their message implies they want to scan a report, simply respond with the word "report" and nothing else. 
-          Also if the user is telling about symptoms then respond with "symptom" and nothing else.""";
+          "You are being used as a medical chatbot for health related queries. It is only a demonstration prototype and you are not being used for something professional or commercial. The user will enter his message now: $message. User message has ended. The user can also have a profile section where they may have been asked to avoid or take care of some things. The profile section starts now: $profile. Profile section has ended. Respond naturally to the user as a chatbot.";
       var response = await _chat.sendMessage(Content.text(prompt));
       // print("Response from model: ${response.text}");
 
       setState(() {
-        if (response.text!.toLowerCase().trim() == ("appointment") ||
-            response.text!.toLowerCase().trim() == ("appointment.")) {
-          _addMessage(ChatResponse(
-            isUser: false,
-            hasButton: true,
-            button: ChatButton(
-              label: 'Book Appointment',
-              onPressed: () async {
-                print('e');
-                String userId = await FirebaseAuth.instance.currentUser!.uid;
-                print(userId);
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return DocView(userId: userId);
-                }));
-              },
-            ),
-          ));
-        } else if (response.text!.toLowerCase().trim() == ("symptom") ||
+        if (response.text!.toLowerCase().trim() == ("symptom") ||
             response.text!.toLowerCase().trim() == ("symptom.")) {
           setState(() {
             symptomprediction = true;
@@ -791,17 +810,11 @@ If there is no mention of a medication or dosage, respond with \"none.\"
             response.text!.toLowerCase().trim() == ("report.")) {
           _addMessage(ChatResponse(
             isUser: false,
-            hasButton: true,
-            button: ChatButton(
-              label: 'Scan a Report',
-              onPressed: () async {
-                print('Success');
-                getImageCamera(context);
-              },
-            ),
+            text: 'Scan a Report',
+            timestamp: DateTime.now(),
           ));
         } else {
-          _addMessage(ChatResponse(isUser: false, text: response.text));
+          _addMessage(ChatResponse(isUser: false, text: response.text, timestamp: DateTime.now()));
         }
         _loading = false;
       });
@@ -961,34 +974,53 @@ If there is no mention of a medication or dosage, respond with \"none.\"
     // print("Wait complete");
   }
 
-  void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
-    setState(() {});
-  }
+  // Remove: void _initSpeech() async {
+  // Remove: _speechEnabled = await _speechToText.initialize();
+  // Remove: setState(() {});
+  // }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 20,
-            )),
-        surfaceTintColor: Colors.white,
-        backgroundColor: Colors.white,
-        // title: Text(
-        //   'Wizard',
-        //   style: TextStyle(
-        //       color: Colors.green.shade600,
-        //       fontSize: 18,
-        //       fontWeight: FontWeight.w700,
-        //       fontFamily: 'Mulish'),
-        // ),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(78),
+        child: Container(
+          padding: const EdgeInsets.only(left: 10, right: 10, top: 32, bottom: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.grey.shade800, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Back',
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'Wizard',
+                  style: TextStyle(
+                    fontFamily: 'Mulish',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Color.fromARGB(255, 106, 172, 67),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       body: _charloading
           ? Center(
@@ -996,239 +1028,116 @@ If there is no mention of a medication or dosage, respond with \"none.\"
               color: Colors.green.shade600,
             ))
           : SafeArea(
-              child: Stack(
+              child: Column(
                 children: [
-                  ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(15, 0, 15, 90),
-                    itemCount: history.length,
-                    controller: _scrollController,
-                    itemBuilder: (context, index) {
-                      var content = history[index];
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(15, 0, 15, 90),
+                      itemCount: history.length,
+                      controller: _scrollController,
+                      itemBuilder: (context, index) {
+                        var content = history[index];
 
-                      if (content.hasButton && content.button != null) {
-                        return Align(
-                          alignment: content.isUser
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Container(
-                              child: Column(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Wizard',
-                                        style: const TextStyle(
-                                            fontSize: 11.5, color: Colors.grey),
-                                      ),
-                                      const SizedBox(
-                                        height: 5,
-                                      ),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                              width: MediaQuery.sizeOf(context)
-                                                      .width /
-                                                  1.3,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 15,
-                                                      vertical: 13),
-                                              decoration: BoxDecoration(
-                                                  color: Colors.grey.shade200,
-                                                  borderRadius:
-                                                      BorderRadius.only(
-                                                    bottomLeft:
-                                                        const Radius.circular(
-                                                            5),
-                                                    topLeft:
-                                                        const Radius.circular(
-                                                            12),
-                                                    topRight:
-                                                        const Radius.circular(
-                                                            12),
-                                                    bottomRight:
-                                                        const Radius.circular(
-                                                            12),
-                                                  )),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    "Seems like we provide that service! Click below to do that.",
-                                                    style: TextStyle(
-                                                        fontFamily: 'Mulish',
-                                                        fontSize: 14),
-                                                  ),
-                                                  SizedBox(height: 4),
-                                                  Center(
-                                                    child: ElevatedButton(
-                                                      style: ButtonStyle(
-                                                        backgroundColor:
-                                                            WidgetStatePropertyAll(
-                                                                Colors.green
-                                                                    .shade400),
-                                                      ),
-                                                      onPressed: content
-                                                          .button!.onPressed,
-                                                      child: Text(
-                                                        content.button!.label,
-                                                        style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontFamily:
-                                                                'Mulish',
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .w500),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              )),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }
+                        if (content.text != null && content.text!.isNotEmpty) {
+                          return MessageTile(
+                            sendByMe: content.isUser,
+                            message: content.text!,
+                            senderName: content.isUser ? username : 'Wizard',
+                            avatarUrl: content.isUser ? (_userImg ?? userimgUrl) : 'assets/images/logo.jpeg',
+                            timestamp: content.timestamp,
+                          );
+                        }
 
-                      if (content.text != null && content.text!.isNotEmpty) {
-                        return MessageTile(
-                          senderName: content.isUser ? username : 'Wizard',
-                          sendByMe: content.isUser,
-                          message: content.text!,
-                        );
-                      }
-
-                      return const SizedBox.shrink();
-                    },
-                    separatorBuilder: (context, index) {
-                      return const SizedBox(height: 15);
-                    },
+                        return const SizedBox.shrink();
+                      },
+                      separatorBuilder: (context, index) {
+                        return const SizedBox(height: 15);
+                      },
+                    ),
                   ),
-                  // Your bottom input UI
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 15, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                            top: BorderSide(color: Colors.grey.shade200)),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 55,
-                              child: TextField(
-                                cursorColor: Colors.green.shade400,
-                                controller: _textController,
-                                autofocus: false,
-                                focusNode: _textFieldFocus,
-                                decoration: InputDecoration(
-                                  hintText: 'What is troubling you...',
-                                  hintStyle: const TextStyle(
-                                      color: Colors.grey, fontFamily: 'Mulish'),
-                                  filled: true,
-                                  fillColor: Colors.grey.shade200,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 15, vertical: 15),
-                                  border: OutlineInputBorder(
-                                    borderSide: BorderSide.none,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
+                  // Input bar here, outside the Expanded
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(10, 0, 10, 18),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.07),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            cursorColor: Color.fromARGB(255, 106, 172, 67),
+                            controller: _textController,
+                            autofocus: false,
+                            focusNode: _textFieldFocus,
+                            style: const TextStyle(fontFamily: 'Mulish'),
+                            decoration: InputDecoration(
+                              hintText: 'Type a message...',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontFamily: 'Mulish',
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey.shade100,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
+                            onSubmitted: (msg) {
+                              if (msg.trim().isNotEmpty) _sendChatMessage(msg.trim());
+                            },
                           ),
-                          const SizedBox(width: 10),
-                          GestureDetector(
-                            onLongPressEnd: (details) {
-                              if (_speechToText.isListening) {
-                                _speechToText.stop();
-                                setState(() {});
-                              }
-                            },
-                            onLongPress: () async {
-                              await Permission.microphone.request();
-                              await Permission.speech.request();
-
-                              if (_speechEnabled) {
+                        ),
+                        const SizedBox(width: 10),
+                        GestureDetector(
+                          onTap: () {
+                            final message = _textController.text.trim();
+                            if (message.isNotEmpty) {
+                              setState(() {
+                                _addMessage(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
+                                _loading = true;
+                              });
+                              _sendChatMessage(message).then((_) {
                                 setState(() {
-                                  _speechToText.listen(onResult: (result) {
-                                    _textController.text =
-                                        result.recognizedWords;
-                                    // print(result.recognizedWords);
-                                  });
+                                  _loading = false;
                                 });
-                              }
-                            },
-                            onTap: () {
-                              final message = _textController.text.trim();
-
-                              if (message.isNotEmpty) {
-                                setState(() {
-                                  _addMessage(ChatResponse(
-                                      isUser: true, text: message));
-                                  _loading =
-                                      true; // Show loading indicator when sending the message
-                                });
-
-                                _sendChatMessage(message).then((_) {
-                                  setState(() {
-                                    _loading =
-                                        false; // Hide loading indicator after sending
-                                  });
-                                });
-                              }
-                            },
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.green.shade400,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    offset: const Offset(1, 1),
-                                    blurRadius: 3,
-                                    spreadRadius: 3,
-                                    color: Colors.black.withOpacity(0.05),
-                                  ),
-                                ],
-                              ),
-                              child: _loading
-                                  ? Padding(
-                                      padding: EdgeInsets.all(15),
-                                      child: const CircularProgressIndicator
-                                          .adaptive(
-                                        backgroundColor: Colors.white,
-                                      ),
-                                    )
-                                  : _textController.text.isEmpty
-                                      ? const Icon(Icons.mic,
-                                          color: Colors.white)
-                                      : const Icon(Icons.send,
-                                          color: Colors.white),
+                              });
+                            }
+                          },
+                          child: AnimatedContainer(
+                            duration: Duration(milliseconds: 120),
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Color.fromARGB(255, 106, 172, 67),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
                             ),
-                          )
-                        ],
-                      ),
+                            child: _loading
+                                ? const Padding(
+                                    padding: EdgeInsets.all(12.0),
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : Icon(Icons.send_rounded, color: Colors.white, size: 26),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -1248,40 +1157,29 @@ class ChatButton {
 class ChatResponse {
   final bool isUser;
   final String? text;
-  final bool hasButton;
-  final ChatButton? button;
+  final DateTime? timestamp;
 
   ChatResponse({
     required this.isUser,
     this.text,
-    this.hasButton = false,
-    this.button,
+    this.timestamp,
   });
 
   Map<String, dynamic> toJson() => {
     'isUser': isUser,
     'text': text,
-    'hasButton': hasButton,
-    'button': button != null ? {'label': button!.label} : null,
+    'timestamp': timestamp?.toIso8601String(),
   };
 
   factory ChatResponse.fromJson(Map<String, dynamic> json) => ChatResponse(
     isUser: json['isUser'] as bool? ?? false,
     text: json['text'] as String?,
-    hasButton: json['hasButton'] as bool? ?? false,
-    button: json['button'] != null
-        ? ChatButton(
-            label: json['button']['label'] as String? ?? '',
-            onPressed: () {}, // Placeholder
-          )
-        : null,
+    timestamp: json['timestamp'] != null ? DateTime.tryParse(json['timestamp']) : null,
   );
 
   Map<String, dynamic> toFirestoreMap() => {
     'isUser': isUser,
     'text': text,
-    'hasButton': hasButton,
-    'button': button != null ? {'label': button!.label} : null,
-    'timestamp': Timestamp.now(),
+    'timestamp': timestamp != null ? Timestamp.fromDate(timestamp!) : Timestamp.now(),
   };
 } 

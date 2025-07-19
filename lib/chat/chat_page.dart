@@ -21,18 +21,20 @@ class ChatPage extends StatelessWidget {
               Text(
                 "Hi, ",
                 style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Mulish',
-                    fontSize: 40,
-                    color: Color.fromARGB(255, 106, 172, 67)),
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Mulish',
+                  fontSize: 40,
+                  color: Color.fromARGB(255, 106, 172, 67),
+                ),
               ),
               Text(
                 uname,
                 style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Mulish',
-                    fontSize: 40,
-                    color: const Color.fromRGBO(97, 97, 97, 1)),
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'Mulish',
+                  fontSize: 40,
+                  color: const Color.fromRGBO(97, 97, 97, 1),
+                ),
               ),
             ],
           ),

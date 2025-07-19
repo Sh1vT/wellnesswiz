@@ -21,6 +21,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wellwiz/globalScaffold/splash_screen.dart';
 import 'package:wellwiz/utils/app_initializer.dart';
 import 'package:wellwiz/utils/user_info_cache.dart';
+import 'package:flutter/services.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -33,6 +34,10 @@ Future<void> clearEmotionMonitorData() async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   print('main.dart: Firebase.apps.length = ${Firebase.apps.length}');
   if (Firebase.apps.isEmpty) {
     print('main.dart: Initializing Firebase');

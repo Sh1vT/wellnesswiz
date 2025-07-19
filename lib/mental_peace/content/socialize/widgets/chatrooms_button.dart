@@ -54,7 +54,15 @@ class ChatroomsButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Icon(Icons.chat_bubble, color: Colors.grey.shade800, size: 80),
+              // Icon(Icons.chat_bubble, color: Colors.grey.shade800, size: 80),
+              ClipOval(
+                child: Image.asset(
+                  'assets/images/social.jpeg',
+                  height: 80,
+                  width: 80,
+                  fit: BoxFit.cover,
+                ),
+              ),
               const SizedBox(width: 16.0),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,

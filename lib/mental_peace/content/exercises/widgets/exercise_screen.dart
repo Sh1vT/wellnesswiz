@@ -64,8 +64,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
   Future<void> _playMusic() async {
     try {
-      int randomFileNumber = Random().nextInt(4) + 1;
-      await _audioPlayer.setSource(AssetSource('music/$randomFileNumber.mp3'));
+      await _audioPlayer.setSource(AssetSource('music/1.mp3'));
       await _audioPlayer.resume();
     } catch (e) {
       print('Error loading audio: $e');

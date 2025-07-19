@@ -61,10 +61,9 @@ class _EditAccountInfoSheetState extends State<EditAccountInfoSheet> {
     if (user == null) return;
     try {
       await user.updateDisplayName(_displayNameController.text.trim());
-      await user.updateEmail(_emailController.text.trim());
       await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
         'displayName': _displayNameController.text.trim(),
-        'email': _emailController.text.trim(),
+        // 'email': _emailController.text.trim(), // Do not update email
         'age': int.tryParse(_ageController.text.trim()),
         'gender': gender,
         'goals': selectedGoals,
@@ -110,6 +109,7 @@ class _EditAccountInfoSheetState extends State<EditAccountInfoSheet> {
                         controller: _emailController,
                         decoration: const InputDecoration(labelText: 'Email'),
                         style: const TextStyle(fontFamily: 'Mulish'),
+                        enabled: false, // Make email read-only
                       ),
                       const SizedBox(height: 16),
                       TextField(

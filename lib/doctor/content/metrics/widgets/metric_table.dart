@@ -45,7 +45,7 @@ class MetricTable extends StatelessWidget {
                   padding: EdgeInsets.all(8.0),
                   child: Text(
                     'Chemical',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish'),
                   ),
                 ),
                 SizedBox(width: 36), // Header for icon column
@@ -53,14 +53,14 @@ class MetricTable extends StatelessWidget {
                   padding: EdgeInsets.only(left: 28.0, right: 8.0, top: 8.0, bottom: 8.0),
                   child: Text(
                     'Value',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish'),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text(
-                    'Normal Range',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    'Normals',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish'),
                   ),
                 ),
               ],

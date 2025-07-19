@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 class UserSearchSection extends StatefulWidget {
   const UserSearchSection({super.key});
@@ -32,7 +33,8 @@ class _UserSearchSectionState extends State<UserSearchSection> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search by handle or name',
-              prefixIcon: Icon(Icons.search),
+              hintStyle: const TextStyle(fontFamily: 'Mulish', color: ColorPalette.black),
+              prefixIcon: const Icon(Icons.search, color: ColorPalette.black),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onChanged: (val) => setState(() => _searchTerm = val.trim()),

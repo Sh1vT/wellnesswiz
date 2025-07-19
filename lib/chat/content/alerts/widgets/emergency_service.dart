@@ -328,29 +328,29 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             ],
           ),
           const SizedBox(height: 20),
-          if (contacts.isEmpty) ...[
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 24, right: 8),
-                child: ActionChip(
-                  avatar: const Icon(Icons.add, color: Colors.white, size: 20),
-                  label: const Text(
-                    'Add',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontFamily: 'Mulish',
-                      fontWeight: FontWeight.w600,
-                    ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 24, right: 8),
+              child: ActionChip(
+                avatar: const Icon(Icons.add, color: Colors.white, size: 20),
+                label: const Text(
+                  'Add',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Mulish',
+                    fontWeight: FontWeight.w600,
                   ),
-                  backgroundColor: ColorPalette.green,
-                  onPressed: _showAddContactDialog,
-                  elevation: 2,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 ),
+                backgroundColor: ColorPalette.green,
+                onPressed: _showAddContactDialog,
+                elevation: 2,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               ),
             ),
-            const SizedBox(height: 12),
+          ),
+          const SizedBox(height: 12),
+          if (contacts.isEmpty) ...[
             Container(
               width: double.infinity,
               margin: const EdgeInsets.symmetric(horizontal: 24),

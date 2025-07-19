@@ -64,55 +64,55 @@ class _SocialSectionState extends State<SocialSection> {
   @override
   Widget build(BuildContext context) {
     final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    // Achievements Banner (always at top)
-    final achievementsBanner = Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final screenWidth = MediaQuery.of(context).size.width;
-          final cardWidth = screenWidth * 0.7;
-          final cardHeight = cardWidth / 16 * 9 + 60;
-          final bannerHeight = cardHeight + 16;
-          return SizedBox(
-            height: bannerHeight,
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('achievements')
-                  .orderBy('likeCount', descending: true)
-                  .orderBy('timestamp', descending: true)
-                  .limit(10)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
-                }
-                final docs = snapshot.data!.docs;
-                if (docs.isEmpty) {
-                  return Center(child: Text('No achievements yet!'));
-                }
-                final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
-                final cards = docs.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  return AchievementCard(
-                    imageUrl: data['imageUrl'] ?? '',
-                    title: data['title'] ?? '',
-                    caption: data['caption'] ?? '',
-                    name: data['name'] ?? 'User',
-                    likeCount: data['likeCount'] ?? 0,
-                    likedBy: List<String>.from(data['likedBy'] ?? []),
-                    achievementId: doc.id,
-                    currentUserId: currentUserId,
-                    width: cardWidth,
-                    height: cardHeight,
-                  );
-                }).toList();
-                return AutoScrollingAchievementsBanner(cards: cards);
-              },
-            ),
-          );
-        },
-      ),
-    );
+    // Achievements Banner (commented out for now)
+    // final achievementsBanner = Padding(
+    //   padding: const EdgeInsets.only(top: 12),
+    //   child: LayoutBuilder(
+    //     builder: (context, constraints) {
+    //       final screenWidth = MediaQuery.of(context).size.width;
+    //       final cardWidth = screenWidth * 0.7;
+    //       final cardHeight = cardWidth / 16 * 9 + 60;
+    //       final bannerHeight = cardHeight + 16;
+    //       return SizedBox(
+    //         height: bannerHeight,
+    //         child: StreamBuilder<QuerySnapshot>(
+    //           stream: FirebaseFirestore.instance
+    //               .collection('achievements')
+    //               .orderBy('likeCount', descending: true)
+    //               .orderBy('timestamp', descending: true)
+    //               .limit(10)
+    //               .snapshots(),
+    //           
+    //             if (!snapshot.hasData) {
+    //               return Center(child: CircularProgressIndicator());
+    //             }
+    //             final docs = snapshot.data!.docs;
+    //             if (docs.isEmpty) {
+    //               return Center(child: Text('No achievements yet!'));
+    //             }
+    //             final String currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
+    //             final cards = docs.map((doc) {
+    //               final data = doc.data() as Map<String, dynamic>;
+    //               return AchievementCard(
+    //                 imageUrl: data['imageUrl'] ?? '',
+    //                 title: data['title'] ?? '',
+    //                 caption: data['caption'] ?? '',
+    //                 name: data['name'] ?? 'User',
+    //                 likeCount: data['likeCount'] ?? 0,
+    //                 likedBy: List<String>.from(data['likedBy'] ?? []),
+    //                 achievementId: doc.id,
+    //                 currentUserId: currentUserId,
+    //                 width: cardWidth,
+    //                 height: cardHeight,
+    //               );
+    //             }).toList();
+    //             return AutoScrollingAchievementsBanner(cards: cards);
+    //           },
+    //         ),
+    //       );
+    //     },
+    //   ),
+    // );
 
     // Chips (always below achievements)
     final chipsRow = Padding(
@@ -197,7 +197,7 @@ class _SocialSectionState extends State<SocialSection> {
       child: Align(
         alignment: Alignment.centerLeft,
         child: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.grey.shade800, size: 28),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.grey.shade800, size: 20),
           onPressed: () => Navigator.of(context).pop(),
           tooltip: 'Back',
         ),
@@ -230,8 +230,8 @@ class _SocialSectionState extends State<SocialSection> {
               child: titleRow,
             ),
             const SizedBox(height: 20),
-            achievementsBanner,
-            const SizedBox(height: 16),
+            // achievementsBanner, // commented out for now
+            // const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: chipsRow,

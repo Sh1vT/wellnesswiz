@@ -52,7 +52,7 @@ class BotButton extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Chat with Wisher',
+                  'Chat with Wiz',
                   style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.w600,

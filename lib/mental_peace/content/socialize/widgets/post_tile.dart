@@ -59,7 +59,7 @@ class PostTile extends StatelessWidget {
             Row(
               children: [
                 _LikeButton(postId: post.id),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 Text('${post.likeCount}', style: const TextStyle(fontFamily: 'Mulish')),
                 const SizedBox(width: 24),
                 GestureDetector(
@@ -79,7 +79,7 @@ class PostTile extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(Icons.comment, color: Colors.grey.shade600, size: 22),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                       Text('${post.commentCount}', style: const TextStyle(fontFamily: 'Mulish')),
                     ],
                   ),

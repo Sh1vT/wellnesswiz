@@ -722,6 +722,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
+                                      fontFamily: 'Mulish',
                                     ),
                                   ),
                                 ],

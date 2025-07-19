@@ -353,7 +353,7 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
             children: [
               _QuickAccessGridTile(
                 icon: Icons.edit,
-                label: 'Edit Info',
+                label: 'Edit',
                 onTap: () async {
                   await showModalBottomSheet(
                     context: context,

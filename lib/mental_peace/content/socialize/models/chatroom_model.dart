@@ -7,6 +7,7 @@ class ChatroomModel {
   final int memberCount;
   final String theme;
   final String description;
+  final String createdBy;
 
   ChatroomModel({
     required this.id,
@@ -17,6 +18,7 @@ class ChatroomModel {
     required this.memberCount,
     required this.theme,
     required this.description,
+    required this.createdBy,
   });
 
   factory ChatroomModel.fromFirestore(Map<String, dynamic> data, String id) {
@@ -29,6 +31,7 @@ class ChatroomModel {
       memberCount: data['memberCount'] ?? (data['members']?.length ?? 0),
       theme: data['theme'] ?? '',
       description: data['description'] ?? '',
+      createdBy: data['createdBy'] ?? '',
     );
   }
 } 

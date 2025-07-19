@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.dart';
 import 'package:wellwiz/secrets.dart';
+import 'package:wellwiz/utils/message_tile.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 // import 'package:wellwiz/secrets.dart';
 
 class MoodSegment {
@@ -50,6 +52,7 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
   static const List<String> keyEmotions = [
     'Happy', 'Sad', 'Angry', 'Anxious', 'Frustrated', 'Stressed', 'Neutral'
   ];
+  String? _userImg;
 
   void _showError(String message) {
     showDialog(
@@ -71,44 +74,6 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         );
       },
     );
-  }
-
-  void _suggestmhp(String message) async {
-    if (recommendedMhp == true) {
-      return;
-    }
-    String analysisPrompt =
-        """You are being used as a mental health chatbot for demonstration purposes and not commercially or professionally.\nThe user has entered this message : $message. You have to summarise the message and link up the current and existing analysis.\nThe current analysis is $mentalissues. The current session belongs to this emotion so the user was initially feeling this :$currentEmotion.\nNow generate a short summary so that the current analysis can be replaced with a better analysis including the current message.""";
-
-    var analysisResponse =
-        await _chat.sendMessage(Content.text(analysisPrompt));
-    setState(() {
-      mentalissues = analysisResponse.text!;
-    });
-
-    QuerySnapshot querySnapshot = await _firestore.collection('mhp').get();
-    List<Map<String, dynamic>> map = await querySnapshot.docs.map((doc) {
-      return {
-        'name': doc['name'],
-        'profession': doc['profession'],
-      };
-    }).toList();
-
-    String prompt =
-        """You are being used as a mental health chatbot for demonstration purposes and not commercially or professionally. \nYou have to detect the user's messages and analyse how the user is currently feeling so that you can recommend an appropriate doctor.\nThe user is currently feeling $currentEmotion, so take that into consideration too.\nWe have a map of doctors with their name and profession that starts now : $map.\nThe messages of the user so far have been these: $mentalissues. \nIf you cant suggest a doctor yet, simply respond with a plain text of \"none\" and nothing else.\nBut Once you think a doctor matches to the user's current mental condition, respond a message that is formatted like this:\nTell user that you cant replace an actual mental health professional. Tell them you've looked into the messages so far and it seems user has [issue]. \nThen suggest them a [doctor] who specializes in [specialization]... Retur the doctor name and their specialization in bolded letters""";
-
-    var response = await _chat.sendMessage(Content.text(prompt));
-
-    if (response.text!.trim().toLowerCase() == "none." ||
-        response.text!.trim().toLowerCase() == "none") {
-      return;
-    } else {
-      setState(() {
-        history.add(ChatResponse(isUser: false, text: response.text!));
-        recommendedMhp = true;
-      });
-      _scrollDown();
-    }
   }
 
   Future<void> _detectMood() async {
@@ -142,7 +107,8 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
     });
 
     _scrollDown();
-    _suggestmhp(message);
+    // Remove the _suggestmhp method and any calls to it in _sendChatMessage or elsewhere.
+    // In _sendChatMessage, do not call _suggestmhp(message) or add any message with a doctor name.
     // Track both user and Gemini messages for mood detection
     messageCount++;
     recentChatLog.add(ChatLogEntry(sender: 'user', message: message));
@@ -161,7 +127,8 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         recentChatLog.clear();
       }
       setState(() {
-        history.add(ChatResponse(isUser: false, text: response.text));
+        history.add(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
+        history.add(ChatResponse(isUser: false, text: response.text, timestamp: DateTime.now()));
         _loading = false;
       });
       _scrollDown();
@@ -192,6 +159,9 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
 
   Future<void> _initializeSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userImg = _prefs.getString('userimg');
+    });
   }
 
   void _endSessionAndStoreTime() async {
@@ -238,6 +208,7 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
     moodSegments = [MoodSegment(mood: currentMood, startTime: DateTime.now())];
     _initSpeech();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _showDisclaimerDialog());
     _model = GenerativeModel(
       model: 'gemini-2.0-flash-lite',
       apiKey: _apiKey,
@@ -247,6 +218,39 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         "This is the first message before user has interacted. Just give an intro message.");
     _startTime = DateTime.now();
     _initializeSharedPreferences();
+  }
+
+  void _showDisclaimerDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: Text('Disclaimer', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
+        content: Text(
+          'This is just an AI assistant powered by Gemini API. It cannot replace human doctors or medical institutes. Use it as an assistant, not for medical advice.',
+          style: TextStyle(fontFamily: 'Mulish'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            child: Text('Back', style: TextStyle(fontFamily: 'Mulish', color: ColorPalette.black)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color.fromARGB(255, 106, 172, 67),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Text('Alright', style: TextStyle(fontFamily: 'Mulish', color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -259,28 +263,54 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        surfaceTintColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_rounded,
-            size: 20,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(78),
+        child: Container(
+          padding: const EdgeInsets.only(left: 10, right: 10, top: 32, bottom: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.grey.shade800, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Back',
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'Wisher',
+                  style: TextStyle(
+                    fontFamily: 'Mulish',
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Color.fromARGB(255, 106, 172, 67),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
-        backgroundColor: Colors.white,
       ),
       body: SafeArea(
         child: Stack(
           children: [
             ListView.separated(
               padding: const EdgeInsets.fromLTRB(15, 0, 15, 90),
-              itemCount: history.length,
+              itemCount: history.length > 1 ? history.length - 1 : 0,
               controller: _scrollController,
               itemBuilder: (context, index) {
-                var content = history[index];
+                var content = history[index + 1]; // skip the first message
 
                 if (content.hasButton && content.button != null) {
                   return Align(
@@ -368,9 +398,11 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
 
                 if (content.text != null && content.text!.isNotEmpty) {
                   return MessageTile(
-                    senderName: content.isUser ? 'You' : 'Wisher',
                     sendByMe: content.isUser,
                     message: content.text!,
+                    senderName: content.isUser ? 'You' : 'Wisher',
+                    avatarUrl: content.isUser ? _userImg : 'assets/images/logo.jpeg',
+                    timestamp: content.timestamp,
                   );
                 }
 
@@ -383,69 +415,56 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
             Align(
               alignment: Alignment.bottomCenter,
               child: Container(
-                width: MediaQuery.of(context).size.width,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                margin: const EdgeInsets.fromLTRB(10, 0, 10, 18),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.07),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     Expanded(
-                      child: SizedBox(
-                        height: 55,
-                        child: TextField(
-                          cursorColor: Colors.green.shade400,
-                          controller: _textController,
-                          autofocus: false,
-                          focusNode: _textFieldFocus,
-                          decoration: InputDecoration(
-                            hintText: 'What is troubling you...',
-                            hintStyle: const TextStyle(
-                                color: Colors.grey, fontFamily: 'Mulish'),
-                            filled: true,
-                            fillColor: Colors.grey.shade200,
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 15, vertical: 15),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                      child: TextField(
+                        cursorColor: Color.fromARGB(255, 106, 172, 67),
+                        controller: _textController,
+                        autofocus: false,
+                        focusNode: _textFieldFocus,
+                        style: const TextStyle(fontFamily: 'Mulish'),
+                        decoration: InputDecoration(
+                          hintText: 'Type a message...',
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontFamily: 'Mulish',
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                        onSubmitted: (msg) {
+                          if (msg.trim().isNotEmpty) _sendChatMessage(msg.trim());
+                        },
                       ),
                     ),
                     const SizedBox(width: 10),
                     GestureDetector(
-                      onLongPressEnd: (details) {
-                        if (_speechToText.isListening) {
-                          _speechToText.stop();
-                          setState(() {});
-                        }
-                      },
-                      onLongPress: () async {
-                        await Permission.microphone.request();
-                        await Permission.speech.request();
-
-                        if (_speechEnabled) {
-                          setState(() {
-                            _speechToText.listen(onResult: (result) {
-                              _textController.text = result.recognizedWords;
-                            });
-                          });
-                        }
-                      },
                       onTap: () {
                         final message = _textController.text.trim();
-
                         if (message.isNotEmpty) {
                           setState(() {
-                            history
-                                .add(ChatResponse(isUser: true, text: message));
+                            history.add(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
                             _loading = true;
                           });
-
                           _sendChatMessage(message).then((_) {
                             setState(() {
                               _loading = false;
@@ -453,34 +472,29 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
                           });
                         }
                       },
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        alignment: Alignment.center,
+                      child: AnimatedContainer(
+                        duration: Duration(milliseconds: 120),
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: Colors.green.shade400,
-                          shape: BoxShape.circle,
+                          color: Color.fromARGB(255, 106, 172, 67),
+                          borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              offset: const Offset(1, 1),
-                              blurRadius: 3,
-                              spreadRadius: 3,
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
                             ),
                           ],
                         ),
                         child: _loading
-                            ? Padding(
-                                padding: EdgeInsets.all(15),
-                                child: const CircularProgressIndicator.adaptive(
-                                  backgroundColor: Colors.white,
-                                ),
+                            ? const Padding(
+                                padding: EdgeInsets.all(12.0),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               )
-                            : _textController.text.isEmpty
-                                ? const Icon(Icons.mic, color: Colors.white)
-                                : const Icon(Icons.send, color: Colors.white),
+                            : Icon(Icons.send_rounded, color: Colors.white, size: 26),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -504,12 +518,14 @@ class ChatResponse {
   final String? text;
   final bool hasButton;
   final ChatButton? button;
+  final DateTime? timestamp;
 
   ChatResponse({
     required this.isUser,
     this.text,
     this.hasButton = false,
     this.button,
+    this.timestamp,
   });
 }
 
