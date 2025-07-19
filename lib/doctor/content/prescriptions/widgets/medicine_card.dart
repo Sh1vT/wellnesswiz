@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wellwiz/doctor/content/prescriptions/models/prescription.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 import 'dart:math' as math;
+import 'package:wellwiz/utils/poppy_tile.dart';
 
 class MedicineCard extends StatelessWidget {
   final Prescription prescription;
@@ -70,10 +71,17 @@ class MedicineCard extends StatelessWidget {
     }
     return Stack(
       children: [
-        Card(
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          color: Colors.white,
+        PoppyTile(
+          borderRadius: 16,
+          backgroundColor: Colors.grey.shade200,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.07),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          padding: EdgeInsets.zero,
           child: Container(
             width: 220,
             constraints: BoxConstraints(
@@ -81,14 +89,7 @@ class MedicineCard extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.green.shade50,
-                  blurRadius: 8,
-                  offset: Offset(0, 4),
-                ),
-              ],
+              color: Colors.transparent,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

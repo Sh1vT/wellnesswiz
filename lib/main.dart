@@ -16,6 +16,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:wellwiz/doctor/doctor_page.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:wellwiz/onboarding/app_tour_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wellwiz/globalScaffold/splash_screen.dart';
+import 'package:wellwiz/utils/app_initializer.dart';
+import 'package:wellwiz/utils/user_info_cache.dart';
+
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 // void main() => test.main();
 Future<void> clearEmotionMonitorData() async {
@@ -55,37 +62,6 @@ void main() async {
   // uploadSampleAchievements();
   // uploadSampleChatrooms();
 
-  // Fetch user's real location and pre-populate hospital lists
-  try {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission != LocationPermission.denied && permission != LocationPermission.deniedForever) {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      double userLat = position.latitude;
-      double userLng = position.longitude;
-      final hospitals1km = await fetchNearbyHospitals(userLat: userLat, userLng: userLng, geohashPrecision: 6, maxResults: 20);
-      final hospitals5kmRaw = await fetchNearbyHospitals(userLat: userLat, userLng: userLng, geohashPrecision: 5, maxResults: 20);
-      final hospitals20kmRaw = await fetchNearbyHospitals(userLat: userLat, userLng: userLng, geohashPrecision: 4, maxResults: 20);
-      // Deduplicate: only show hospitals in their closest tier
-      final hospitals1kmSet = hospitals1km.map((h) => h.name + h.latitude.toString() + h.longitude.toString()).toSet();
-      final hospitals5km = hospitals5kmRaw.where((h) => !hospitals1kmSet.contains(h.name + h.latitude.toString() + h.longitude.toString())).toList();
-      final hospitals5kmSet = hospitals5km.map((h) => h.name + h.latitude.toString() + h.longitude.toString()).toSet();
-      final hospitals20km = hospitals20kmRaw.where((h) =>
-        !hospitals1kmSet.contains(h.name + h.latitude.toString() + h.longitude.toString()) &&
-        !hospitals5kmSet.contains(h.name + h.latitude.toString() + h.longitude.toString())
-      ).toList();
-      DoctorPage.setupHospitals(
-        within20km: hospitals20km,
-        within5km: hospitals5km,
-        within1km: hospitals1km,
-      );
-    }
-  } catch (e) {
-    print('Error fetching user location or hospitals: $e');
-  }
   // clearOldHealthData();
   // await clearEmotionMonitorData();
 
@@ -112,31 +88,59 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   User? _user;
   bool _isLoading = true;
+  bool _onboardingComplete = false;
 
   @override
   void initState() {
     super.initState();
-    initialiseUser();
+    _showSplashAndInit();
   }
 
-  Future<void> initialiseUser() async {
+  Future<void> _showSplashAndInit() async {
+    // Start both splash delay and auth/onboarding check in parallel
+    await Future.wait([
+      Future.delayed(const Duration(seconds: 2)),
+      _checkAuthAndOnboarding(),
+    ]);
+    setState(() { _isLoading = false; });
+  }
+
+  Future<void> _checkAuthAndOnboarding() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      setState(() {
-        _user = user;
-        _isLoading = false;
-      });
+      if (user == null) {
+        _user = null;
+        _onboardingComplete = false;
+        await initializeAppStartup();
+        await UserInfoCache.getUserInfo();
+        return;
+      }
+      // Check onboarding status in Firebase
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final onboardingDone = doc.data()?['onboardingCompleted'] == true;
+      // Fallback to local storage if needed
+      final prefs = await SharedPreferences.getInstance();
+      final localOnboarding = prefs.getBool('onboardingCompleted') ?? false;
+      _user = user;
+      _onboardingComplete = onboardingDone || localOnboarding;
+      await initializeAppStartup();
+      await UserInfoCache.getUserInfo();
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      // ignore
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const MaterialApp(
+        home: SplashScreen(),
+      );
+    }
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'WellWiz',
+      navigatorKey: rootNavigatorKey,
       theme: ThemeData(
         fontFamily: 'Mulish',
         scaffoldBackgroundColor: Colors.white,
@@ -160,11 +164,26 @@ class _MyAppState extends State<MyApp> {
         ),
         useMaterial3: true,
       ),
-      home: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : (_user == null)
-              ? const LoginScreen()
-              : GlobalScaffold(),
+      home: _user == null
+          ? LoginScreen()
+          : _onboardingComplete
+              ? GlobalScaffold()
+              : AppTourScreen(
+                  onFinish: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('onboardingCompleted', true);
+                    final user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
+                        {'onboardingCompleted': true},
+                        SetOptions(merge: true),
+                      );
+                    }
+                    rootNavigatorKey.currentState?.pushReplacement(
+                      MaterialPageRoute(builder: (_) => GlobalScaffold()),
+                    );
+                  },
+                ),
     );
   }
 }

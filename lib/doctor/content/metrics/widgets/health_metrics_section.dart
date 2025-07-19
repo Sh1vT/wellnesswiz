@@ -17,6 +17,7 @@ import 'package:wellwiz/doctor/content/metrics/widgets/report_type_selector.dart
 import 'package:wellwiz/doctor/content/metrics/widgets/extracted_metrics_dialog.dart';
 import 'package:wellwiz/doctor/content/metrics/widgets/image_picker_dialog.dart';
 import 'package:wellwiz/utils/metrics_utils.dart';
+import 'package:wellwiz/utils/poppy_tile.dart';
 import 'package:wellwiz/utils/scan_history_service.dart';
 import 'package:wellwiz/doctor/content/metrics/widgets/metric_trend_dialog.dart';
 import 'package:wellwiz/utils/color_palette.dart';
@@ -845,95 +846,99 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                       children: [
                         const SizedBox(height: 20),
                         // Card for latest scan
-                        Card(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                        PoppyTile(
+                          borderRadius: 16,
+                          backgroundColor: Colors.grey.shade200,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.07),
+                              blurRadius: 16,
+                              offset: const Offset(0, 4),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 12,
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                    Text(
-                                            "Report",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                                              color: ColorPalette.green,
-                        fontFamily: 'Mulish',
-                      ),
-                    ),
-                                          const SizedBox(width: 8),
-                                              Material(
-                                                color: ColorPalette.green,
-                                                shape: const CircleBorder(),
-                                                child: InkWell(
-                                                  customBorder: const CircleBorder(),
-                                                  onTap: () {
-                                                    showDialog(
-                                                      context: context,
-                                                      builder: (context) => ReportHistoryDialog(
-                                                        reportTypeKey: selectedType!,
-                                                        scans: entries,
-                                                        onHistoryChanged: () => setState(() {}),
-                                                      ),
-                                                    );
-                                                  },
-                                                  child: const Padding(
-                                                    padding: EdgeInsets.all(6.0),
-                                                    child: Icon(Icons.history, color: Colors.white, size: 20),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                                          Text(
-                                            'Date: ' +
-                                                (latest.timestamp != null
-                                                    ? '${latest.timestamp.year}-${latest.timestamp.month.toString().padLeft(2, '0')}-${latest.timestamp.day.toString().padLeft(2, '0')}'
-                                                    : ''),
-                                            style: TextStyle(
-                                              color: ColorPalette.blackDarker,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13,
-                                            ),
-                                          ),
-                                          Text(
-                                            'Time: ' +
-                                                (latest.timestamp != null
-                                                    ? '${latest.timestamp.hour.toString().padLeft(2, '0')}:${latest.timestamp.minute.toString().padLeft(2, '0')}'
-                                                    : ''),
-                                            style: TextStyle(
-                                              color: ColorPalette.blackDarker,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 13,
-                                            ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-                                MetricTable(
-                                  metrics: metrics,
-                                  onMetricTap: (metricName) =>
-                                      _showMetricTrendDialog(metricName, entries),
+                          ],
+                          padding: EdgeInsets.zero,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
                                 ),
-                              ],
-                            ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          "Report",
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: ColorPalette.green,
+                                            fontFamily: 'Mulish',
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Material(
+                                          color: ColorPalette.green,
+                                          shape: const CircleBorder(),
+                                          child: InkWell(
+                                            customBorder: const CircleBorder(),
+                                            onTap: () {
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) => ReportHistoryDialog(
+                                                  reportTypeKey: selectedType!,
+                                                  scans: entries,
+                                                  onHistoryChanged: () => setState(() {}),
+                                                ),
+                                              );
+                                            },
+                                            child: const Padding(
+                                              padding: EdgeInsets.all(6.0),
+                                              child: Icon(Icons.history, color: Colors.white, size: 20),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          'Date: ' +
+                                              (latest.timestamp != null
+                                                  ? '${latest.timestamp.year}-${latest.timestamp.month.toString().padLeft(2, '0')}-${latest.timestamp.day.toString().padLeft(2, '0')}'
+                                                  : ''),
+                                          style: TextStyle(
+                                            color: ColorPalette.blackDarker,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Time: ' +
+                                              (latest.timestamp != null
+                                                  ? '${latest.timestamp.hour.toString().padLeft(2, '0')}:${latest.timestamp.minute.toString().padLeft(2, '0')}'
+                                                  : ''),
+                                          style: TextStyle(
+                                            color: ColorPalette.blackDarker,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              MetricTable(
+                                metrics: metrics,
+                                onMetricTap: (metricName) =>
+                                    _showMetricTrendDialog(metricName, entries),
+                              ),
+                            ],
                           ),
                         ),
                       ],

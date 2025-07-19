@@ -74,6 +74,7 @@ dependencies:
   flutter_foreground_task: ^9.1.0
   carousel_slider: ^5.1.1
   flutter_contacts: ^1.1.7
+  showcaseview: ^4.0.1
 
 dev_dependencies:
   flutter_test:

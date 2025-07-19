@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:another_telephony/telephony.dart';
+import 'package:wellwiz/utils/poppy_tile.dart';
 
 class SOSAlertButton extends StatefulWidget {
   const SOSAlertButton({super.key});
@@ -115,62 +116,60 @@ class _SOSAlertButtonState extends State<SOSAlertButton> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _sosprotocol,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
-        child: Card(
-          elevation: 2,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, left: 20, right: 20),
+      child: PoppyTile(
+        borderRadius: 12,
+        backgroundColor: Colors.grey.shade200,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            height: 80,
-            decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: const BorderRadius.all(Radius.circular(12))),
-            child: Center(
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.alarm,
-                    size: 40,
-                    color: Colors.red,
-                  ),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        'Send ',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          fontFamily: 'Mulish',
-                        ),
-                      ),
-                      Text('Alerts',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                          fontSize: 18,
-                          fontFamily: 'Mulish',
-                        ),
-                      ),
-                    ],
-                  ),
-                  Spacer(),
-                  const Icon(
-                    Icons.navigate_next_rounded,
-                    color: Colors.grey,
-                  ),
-                ],
-              ),
+        ],
+        padding: const EdgeInsets.all(20),
+        onTap: () async {
+          await Future.delayed(const Duration(milliseconds: 250));
+          _sosprotocol();
+        },
+        child: Row(
+          children: [
+            const Icon(
+              Icons.alarm,
+              size: 40,
+              color: Colors.red,
             ),
-          ),
+            const SizedBox(
+              width: 20,
+            ),
+            Row(
+              children: [
+                Text(
+                  'Send ',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    fontFamily: 'Mulish',
+                  ),
+                ),
+                Text('Alerts',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                    fontSize: 18,
+                    fontFamily: 'Mulish',
+                  ),
+                ),
+              ],
+            ),
+            Spacer(),
+            const Icon(
+              Icons.navigate_next_rounded,
+              color: Colors.grey,
+            ),
+          ],
         ),
       ),
     );

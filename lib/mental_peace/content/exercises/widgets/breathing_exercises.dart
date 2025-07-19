@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wellwiz/mental_peace/content/exercises/widgets/exercise_screen.dart';
+import 'package:wellwiz/utils/poppy_tile.dart';
 
 class BreathingExercises extends StatelessWidget {
   const BreathingExercises({super.key});
@@ -81,21 +82,27 @@ class BreathingExercises extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: exercises.length,
             itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  _showConfirmationDialog(context, exercises[index]);
-                },
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  elevation: 2,
-                  margin: EdgeInsets.only(left: 20, top: 8, bottom: 8),
+              return Container(
+                margin: EdgeInsets.only(left: 20, top: 8, bottom: 16),
+                child: PoppyTile(
+                  borderRadius: 10,
+                  backgroundColor: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.07),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  padding: EdgeInsets.zero,
+                  onTap: () async {
+                    await Future.delayed(const Duration(milliseconds: 250));
+                    _showConfirmationDialog(context, exercises[index]);
+                  },
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 30),
-                    // margin: EdgeInsets.symmetric(horizontal: 5),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(

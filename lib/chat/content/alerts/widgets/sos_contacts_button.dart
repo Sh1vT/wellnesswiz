@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wellwiz/chat/content/alerts/widgets/emergency_service.dart';
 import 'package:wellwiz/utils/color_palette.dart';
+import 'package:wellwiz/utils/poppy_tile.dart';
 
 class SOSContactsButton extends StatelessWidget {
   const SOSContactsButton({super.key});
@@ -27,64 +28,61 @@ class SOSContactsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        if (await _ensureLocationPermission(context)) {
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return const EmergencyScreen();
-          }));
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        child: Card(
-          elevation: 2,
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(12))),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            height: 80,
-            decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: const BorderRadius.all(Radius.circular(12))),
-            child: Center(
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.notifications_active_outlined,
-                    size: 40,
-                    color: ColorPalette.green,
-                  ),
-                  const SizedBox(
-                    width: 20,
-                  ),
-                  Row(
-                    children: const [
-                      Text(
-                        'SOS ',
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 106, 172, 67),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            fontFamily: 'Mulish'),
-                      ),
-                      Text('Contacts',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                              fontSize: 18,
-                              fontFamily: 'Mulish')),
-                    ],
-                  ),
-                  Spacer(),
-                  const Icon(
-                    Icons.navigate_next_rounded,
-                    color: Colors.grey,
-                  ),
-                ],
-              ),
-            ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+      child: PoppyTile(
+        borderRadius: 12,
+        backgroundColor: Colors.grey.shade200,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
+        ],
+        padding: const EdgeInsets.all(20),
+        onTap: () async {
+          if (await _ensureLocationPermission(context)) {
+            await Future.delayed(const Duration(milliseconds: 250));
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return const EmergencyScreen();
+            }));
+          }
+        },
+        child: Row(
+          children: [
+            const Icon(
+              Icons.notifications_active_outlined,
+              size: 40,
+              color: ColorPalette.green,
+            ),
+            const SizedBox(
+              width: 20,
+            ),
+            Row(
+              children: [
+                Text(
+                  'SOS ',
+                  style: TextStyle(
+                      color: Color.fromARGB(255, 106, 172, 67),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      fontFamily: 'Mulish'),
+                ),
+                Text('Contacts',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        fontSize: 18,
+                        fontFamily: 'Mulish')),
+              ],
+            ),
+            Spacer(),
+            const Icon(
+              Icons.navigate_next_rounded,
+              color: Colors.grey,
+            ),
+          ],
         ),
       ),
     );

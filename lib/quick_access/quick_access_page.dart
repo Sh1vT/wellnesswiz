@@ -5,7 +5,7 @@ import 'package:wellwiz/login/login_page.dart';
 import 'package:wellwiz/quick_access/content/account/widgets/account_info_card.dart';
 import 'package:wellwiz/quick_access/content/account/widgets/quick_access_title.dart';
 import 'package:wellwiz/quick_access/content/bookings/widgets/my_bookings_button.dart';
-import 'package:wellwiz/quick_access/content/reminder_only/reminder_page.dart';
+import 'package:wellwiz/quick_access/content/reminders/widgets/reminder_page.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
 import 'package:wellwiz/quick_access/content/logout/widgets/log_out_button.dart';
 import 'package:wellwiz/quick_access/content/positivity/widgets/daily_positivity_button.dart';
@@ -13,6 +13,11 @@ import 'package:wellwiz/quick_access/content/reminders/widgets/my_reminders_butt
 import 'package:wellwiz/quick_access/content/sos/widgets/sos_contacts_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sensors_plus/sensors_plus.dart';
+import 'dart:math';
+import 'package:wellwiz/quick_access/content/account/widgets/gyro_reactive_card.dart';
+import 'package:wellwiz/quick_access/content/account/edit_account_info.dart';
+import 'package:wellwiz/utils/user_info_cache.dart';
 
 class QuickAccessPage extends StatefulWidget {
   const QuickAccessPage({super.key});
@@ -26,13 +31,53 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
 
   // Account info state
   String? _handle;
+  String? _displayName;
+  String? _photoURL;
+  int? _age;
   bool _isLoading = true;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _fetchHandle();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+    final cached = await UserInfoCache.getUserInfo();
+    if (cached != null) {
+      setState(() {
+        _handle = cached['handle'];
+        _displayName = cached['displayName'];
+        _photoURL = cached['photoURL'];
+        _age = cached['age'] is int ? cached['age'] : int.tryParse(cached['age']?.toString() ?? '');
+        _isLoading = false;
+      });
+      return;
+    }
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final data = doc.data();
+    if (data != null) {
+      UserInfoCache.setUserInfo(data);
+      setState(() {
+        _handle = data['handle'];
+        _displayName = data['displayName'];
+        _photoURL = data['photoURL'];
+        _age = data['age'] is int ? data['age'] : int.tryParse(data['age']?.toString() ?? '');
+        _isLoading = false;
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _fetchHandle() async {
@@ -293,7 +338,7 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: AccountInfoCard(),
+          child: GyroReactiveCard(child: AccountInfoCard()),
         ),
         const SizedBox(height: 32),
         Padding(
@@ -306,6 +351,21 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
             crossAxisSpacing: 12,
             childAspectRatio: 2.8,
             children: [
+              _QuickAccessGridTile(
+                icon: Icons.edit,
+                label: 'Edit Info',
+                onTap: () async {
+                  await showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+                    ),
+                    builder: (context) => const EditAccountInfoSheet(),
+                  );
+                  setState(() {}); // Refresh after editing
+                },
+              ),
               _QuickAccessGridTile(
                 icon: Icons.alarm,
                 label: 'Remind',

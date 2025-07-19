@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:wellwiz/utils/color_palette.dart';
+import 'package:wellwiz/utils/poppy_tile.dart';
 
 class TraitsSection extends StatefulWidget {
   const TraitsSection({super.key});
@@ -171,69 +172,72 @@ class _TraitsSectionState extends State<TraitsSection> {
                 String key = profileMap.keys.elementAt(index);
                 String value = profileMap[key]!;
                 String datePart = key.split(' ')[0];
-                return Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Created on : $datePart",
-                                style: TextStyle(
-                                  color: Colors.grey.shade500,
-                                  fontFamily: 'Mulish',
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                value,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontFamily: 'Mulish',
-                                  fontSize: 16,
-                                ),
-                                maxLines: null,
-                                overflow: TextOverflow.visible,
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            _showTraitDialog(context, initialValue: value, editKey: key);
-                          },
-                          icon: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              shape: BoxShape.circle,
-                            ),
-                            padding: EdgeInsets.all(6),
-                            child: Icon(Icons.edit, color: ColorPalette.black, size: 18),
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () {
-                            _deleteProfileValue(key);
-                          },
-                          icon: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              shape: BoxShape.circle,
-                            ),
-                            padding: EdgeInsets.all(6),
-                            child: Icon(Icons.delete, color: ColorPalette.black, size: 18),
-                          ),
-                        ),
-                      ],
+                return PoppyTile(
+                  borderRadius: 12,
+                  backgroundColor: Colors.grey.shade200,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.07),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Created on : $datePart",
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontFamily: 'Mulish',
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              value,
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontFamily: 'Mulish',
+                                fontSize: 16,
+                              ),
+                              maxLines: null,
+                              overflow: TextOverflow.visible,
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          _showTraitDialog(context, initialValue: value, editKey: key);
+                        },
+                        icon: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            shape: BoxShape.circle,
+                          ),
+                          padding: EdgeInsets.all(6),
+                          child: Icon(Icons.edit, color: ColorPalette.black, size: 18),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          _deleteProfileValue(key);
+                        },
+                        icon: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            shape: BoxShape.circle,
+                          ),
+                          padding: EdgeInsets.all(6),
+                          child: Icon(Icons.delete, color: ColorPalette.black, size: 18),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },

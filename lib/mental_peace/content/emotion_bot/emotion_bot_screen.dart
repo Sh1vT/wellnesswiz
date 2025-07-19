@@ -155,8 +155,8 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
       // Log Gemini's response for context
       messageCount++;
       recentChatLog.add(ChatLogEntry(sender: 'gemini', message: response.text ?? ''));
-      // Check for mood after every 20 messages (10 user, 10 gemini)
-      if (recentChatLog.length == 20) {
+      // Check for mood after every 10 messages (5 user, 5 gemini)
+      if (recentChatLog.length == 10) {
         await _detectMood();
         recentChatLog.clear();
       }

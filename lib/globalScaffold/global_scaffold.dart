@@ -37,8 +37,8 @@ class _GlobalScaffoldState extends ConsumerState<GlobalScaffold> {
   void _getUserInfo() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     setState(() {
-      username = pref.getString('username')!;
-      userimg = pref.getString('userimg')!;
+      username = pref.getString('username') ?? 'User';
+      userimg = pref.getString('userimg') ?? 'https://ui-avatars.com/api/?name=User&background=7CB518&color=fff&size=128';
     });
   }
 

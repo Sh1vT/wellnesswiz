@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wellwiz/secrets.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 class EmotionMonitor extends StatefulWidget {
   const EmotionMonitor({super.key});
@@ -252,7 +253,70 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
             children: [
               Container(
                 height: 300,
-                child: _buildBarChart(),
+                child: Stack(
+                  children: [
+                    _buildBarChart(),
+                    if (allData.isEmpty || allData.values.every((moods) => moods.isEmpty || moods.values.every((v) => v == 0)))
+                      Center(
+                        child: Container(
+                          height: 120,
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              // BoxShadow(
+                              //   color: Colors.black.withOpacity(0.05),
+                              //   blurRadius: 8,
+                              //   offset: Offset(0, 2),
+                              // ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.lock, color: ColorPalette.black, size: 32),
+                              SizedBox(width: 14),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'No Data :(',
+                                    style: TextStyle(
+                                      color: ColorPalette.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Mulish',
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Have some discussion\nwith Wiz on top left!',
+                                    style: TextStyle(
+                                      color: ColorPalette.black,
+                                      fontFamily: 'Mulish',
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    "This one's private",
+                                    style: TextStyle(
+                                      color: ColorPalette.black,
+                                      fontFamily: 'Mulish',
+                                      fontSize: 12,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
