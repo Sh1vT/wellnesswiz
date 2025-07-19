@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     'Better Sleep', 'Stress Reduction', 'Fitness', 'Medication Adherence', 'Healthy Eating', 'Mental Peace', 'Weight Loss', 'Quit Smoking', 'Other'
   ];
   bool _isSigningIn = false;
-  bool isSignUp = true;
+  bool isSignUp = false; // Default to Login mode
   String? previewHandle;
 
   void _updateHandlePreview() {
@@ -43,6 +43,26 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _nameController.addListener(_updateHandlePreview);
+    _checkIfUserIsReturning();
+  }
+
+  Future<void> _checkIfUserIsReturning() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Already signed in, go to main app
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => GlobalScaffold()),
+      );
+      return;
+    }
+    // If user is not signed in, but has previously completed onboarding, default to Login
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('onboardingCompleted') == true) {
+      setState(() {
+        isSignUp = false;
+      });
+    }
   }
 
   void _nextPage() {
@@ -60,18 +80,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signInWithGoogle(BuildContext context) async {
-    if (_nameController.text.isEmpty || _ageController.text.isEmpty || gender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields.')),
-      );
-      return;
-    }
-    if (selectedGoals.length < 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least 3 goals.')),
-      );
-      return;
-    }
     setState(() { _isSigningIn = true; });
     try {
       await GoogleSignIn.instance.initialize(
@@ -92,14 +100,62 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       print("Signed in as:  {userCredential.user?.displayName}");
-      // Save FCM token to Firestore
       String? userId = userCredential.user?.uid;
+      // Check if user exists in Firestore and onboarding is complete
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      // Prevent duplicate sign up: If in sign up mode and user exists, show error and do not proceed
+      if (isSignUp && userDoc.exists && (userDoc.data()?['onboardingCompleted'] == true)) {
+        // Sign out the just-signed-in user to avoid session confusion
+        await FirebaseAuth.instance.signOut();
+        await GoogleSignIn.instance.signOut();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This Google account is already registered. Please use Login instead.')),
+        );
+        setState(() { _isSigningIn = false; });
+        return;
+      }
+      if (userDoc.exists && (userDoc.data()?['onboardingCompleted'] == true)) {
+        // Existing user, skip onboarding
+        final prefs = await SharedPreferences.getInstance();
+        prefs.setString('username', userDoc.data()?['name'] ?? userCredential.user?.displayName ?? '');
+        prefs.setString('userhandle', userDoc.data()?['handle'] ?? '');
+        prefs.setString('userimg', userCredential.user?.photoURL ?? '');
+        prefs.setBool('onboardingCompleted', true);
+        // Save FCM token to Firestore
+        String? fcmToken = await FirebaseMessaging.instance.getToken();
+        if (userId != null && fcmToken != null) {
+          await FirebaseFirestore.instance.collection('users').doc(userId).set({
+            'fcmToken': fcmToken,
+          }, SetOptions(merge: true));
+        }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => GlobalScaffold()),
+        );
+        setState(() { _isSigningIn = false; });
+        return;
+      }
+      // If new user or onboarding not complete, require onboarding fields
+      if (_nameController.text.isEmpty || _ageController.text.isEmpty || gender == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please fill all fields.')),
+        );
+        setState(() { _isSigningIn = false; });
+        return;
+      }
+      if (selectedGoals.length < 3) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select at least 3 goals.')),
+        );
+        setState(() { _isSigningIn = false; });
+        return;
+      }
+      // Save FCM token to Firestore
       String? fcmToken = await FirebaseMessaging.instance.getToken();
       if (userId != null && fcmToken != null) {
         await FirebaseFirestore.instance.collection('users').doc(userId).set({
           'fcmToken': fcmToken,
         }, SetOptions(merge: true));
-        print('[DEBUG] FCM token saved to Firestore for user: $userId');
       }
       // Generate user handle
       String baseHandle = _nameController.text.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
@@ -120,6 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('username', _nameController.text);
       prefs.setString('userhandle', userHandle);
       prefs.setString('userimg', googleUser.photoUrl ?? '');
+      prefs.setBool('onboardingCompleted', true);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => GlobalScaffold()),
@@ -199,7 +256,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   GestureDetector(
-                                    onTap: () => setState(() => isSignUp = true),
+                                    onTap: () {
+                                      setState(() {
+                                        isSignUp = true;
+                                        _currentPage = 0;
+                                      });
+                                      _pageController.jumpToPage(0);
+                                    },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                                       decoration: BoxDecoration(
@@ -285,7 +348,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   GestureDetector(
-                                    onTap: () => setState(() => isSignUp = true),
+                                    onTap: () {
+                                      setState(() {
+                                        isSignUp = true;
+                                        _currentPage = 0;
+                                      });
+                                      _pageController.jumpToPage(0);
+                                    },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                                       decoration: BoxDecoration(
@@ -500,6 +569,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     SignInButton(
                                       buttontext: _currentPage < 1 ? "Next" : "Sign In",
                                       iconImage: _currentPage < 1 ? null : const AssetImage('assets/images/googlelogo.png'),
+                                      loading: _isSigningIn && _currentPage == 1,
                                       onPressed: _isSigningIn
                                           ? null
                                           : () {
@@ -525,13 +595,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               SignInButton(
                                 buttontext: "Sign In",
                                 iconImage: const AssetImage('assets/images/googlelogo.png'),
+                                loading: _isSigningIn,
                                 onPressed: _isSigningIn ? null : () => _signInWithGoogle(context),
                               ),
-                              if (_isSigningIn)
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: CircularProgressIndicator(),
-                                ),
                             ],
                           ),
                         ),

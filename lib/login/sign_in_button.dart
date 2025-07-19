@@ -4,11 +4,14 @@ class SignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String buttontext;
   final ImageProvider<Object>? iconImage;
-  const SignInButton(
-      {super.key,
-      this.onPressed,
-      required this.buttontext,
-      this.iconImage});
+  final bool loading;
+  const SignInButton({
+    super.key,
+    this.onPressed,
+    required this.buttontext,
+    this.iconImage,
+    this.loading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,17 @@ class SignInButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (iconImage != null) ...[
+              if (loading) ...[
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6AAC43)),
+                  ),
+                ),
+                const SizedBox(width: 10),
+              ] else if (iconImage != null) ...[
                 CircleAvatar(
                   backgroundImage: iconImage,
                   radius: 10,
