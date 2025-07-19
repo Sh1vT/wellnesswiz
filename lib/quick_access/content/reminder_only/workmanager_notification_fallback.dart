@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
 
 // INSTRUCTIONS:
 // 1. If you change the WorkManager callback or notification channel, do a full restart (not just hot reload).
@@ -28,6 +29,8 @@ const String channelDesc = 'Channel for WorkManager fallback notifications (v2).
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     print('[DEBUG] WorkManager: callbackDispatcher started');
+    print('[DEBUG] Task name: ' + task);
+    print('[DEBUG] Input data: ' + inputData.toString());
     final FlutterLocalNotificationsPlugin plugin = FlutterLocalNotificationsPlugin();
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -45,16 +48,29 @@ void callbackDispatcher() {
       await plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
       print('[DEBUG] WorkManager: channel created');
     }
+    String notifTitle = inputData?['title'] ?? 'WorkManager Notification';
+    String notifBody = inputData?['body'] ?? 'This notification was scheduled using WorkManager.';
+    if (task == 'thoughtTask') {
+      print('[DEBUG] thoughtTask branch entered');
+      notifTitle = 'Positive Thought';
+      notifBody = inputData?['description'] ?? ThoughtsService.getRandomThought();
+      print('[DEBUG] Chosen thought for notification: ' + notifBody);
+      // Reschedule for the next day at the same time
+      int hour = int.tryParse(inputData?['hour'] ?? '') ?? 8;
+      int minute = int.tryParse(inputData?['minute'] ?? '') ?? 0;
+      await ThoughtsService.rescheduleDailyThought(hour, minute);
+    }
     await plugin.show(
       30001,
-      inputData?['title'] ?? 'WorkManager Notification',
-      inputData?['body'] ?? 'This notification was scheduled using WorkManager.',
-      const NotificationDetails(
+      notifTitle,
+      notifBody,
+      NotificationDetails(
         android: AndroidNotificationDetails(
           channelId,
           channelName,
           importance: Importance.max,
           priority: Priority.high,
+          styleInformation: BigTextStyleInformation(notifBody),
         ),
       ),
     );
@@ -64,15 +80,15 @@ void callbackDispatcher() {
 }
 
 class WorkManagerNotificationFallbackTest extends StatelessWidget {
-  Future<void> scheduleWorkManagerNotification(int seconds) async {
+  Future<void> scheduleWorkManagerNotification(int seconds, {String? title, String? body}) async {
     print('[DEBUG] Scheduling WorkManager notification for $seconds seconds from now');
     await Workmanager().registerOneOffTask(
       'unique_task_${DateTime.now().millisecondsSinceEpoch}',
       workmanagerTaskName,
       initialDelay: Duration(seconds: seconds),
       inputData: {
-        'title': 'WorkManager Notification',
-        'body': 'This notification was scheduled $seconds seconds ago (WorkManager fallback).',
+        'title': title ?? 'WorkManager Notification',
+        'body': body ?? 'This notification was scheduled $seconds seconds ago (WorkManager fallback).',
       },
       existingWorkPolicy: ExistingWorkPolicy.replace,
     );

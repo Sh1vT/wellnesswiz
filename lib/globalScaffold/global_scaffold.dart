@@ -77,56 +77,133 @@ class _GlobalScaffoldState extends ConsumerState<GlobalScaffold> {
             ref.read(pageNavigationProvider.notifier).state = index;
           },
           children: _pages),
-      bottomNavigationBar: SnakeNavigationBar.color(
-        backgroundColor: Colors.grey.shade300,
-        behaviour: snakeBarStyle,
-        snakeShape: snakeShape,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(12), topRight: Radius.circular(12)),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32), // Increased bottom padding for more space
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.07),
+                blurRadius: 16,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _NavBarItem(
+                icon: Icons.home,
+                label: 'Home',
+                selected: selectedIndex == 0,
+                onTap: () {
+                  ref.read(pageNavigationProvider.notifier).state = 0;
+                  _pageController.animateToPage(0, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+                },
+              ),
+              _NavBarItem(
+                icon: Icons.self_improvement_rounded,
+                label: 'Calendar',
+                selected: selectedIndex == 1,
+                onTap: () {
+                  ref.read(pageNavigationProvider.notifier).state = 1;
+                  _pageController.animateToPage(1, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+                },
+              ),
+              _NavBarItem(
+                icon: Icons.supervised_user_circle_rounded,
+                label: 'Alerts',
+                selected: selectedIndex == 2,
+                onTap: () {
+                  ref.read(pageNavigationProvider.notifier).state = 2;
+                  _pageController.animateToPage(2, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+                },
+              ),
+              _NavBarItem(
+                icon: Icons.settings,
+                label: 'Shortcuts',
+                selected: selectedIndex == 3,
+                onTap: () {
+                  ref.read(pageNavigationProvider.notifier).state = 3;
+                  _pageController.animateToPage(3, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+                },
+              ),
+            ],
+          ),
         ),
-        snakeViewColor: const Color.fromARGB(
-          255,
-          106,
-          172,
-          67,
+      ),
+    );
+  }
+}
+
+class _NavBarItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _NavBarItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 0),
+          decoration: BoxDecoration(
+            color: Colors.transparent, // No background color for selection
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: Duration(milliseconds: 250),
+                width: selected ? 44 : 32, // Slightly larger when selected
+                height: selected ? 44 : 32,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200, // Always the same background
+                  shape: BoxShape.circle,
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.10),
+                            blurRadius: 4, // Reduced blur for a crisper shadow
+                            offset: Offset(0, 2),
+                          ),
+                        ]
+                      : [],
+                ),
+                child: Icon(
+                  icon,
+                  color: selected ? Color(0xFF6AAC43) : Colors.grey.shade600,
+                  size: selected ? 26 : 22,
+                ),
+              ),
+              // Removed the label/text under the icon for a minimal look
+              // const SizedBox(height: 4),
+              // AnimatedDefaultTextStyle(
+              //   duration: Duration(milliseconds: 250),
+              //   style: TextStyle(
+              //     color: selected ? Color(0xFF6AAC43) : Colors.grey.shade600,
+              //     fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              //     fontSize: selected ? 13 : 12,
+              //   ),
+              //   child: Text(label),
+              // ),
+            ],
+          ),
         ),
-        selectedItemColor: SnakeShape.indicator == snakeShape
-            ? const Color.fromARGB(
-                255,
-                106,
-                172,
-                67,
-              )
-            : null,
-        showUnselectedLabels: showUnselectedLabels,
-        showSelectedLabels: showSelectedLabels,
-        currentIndex: selectedIndex,
-        onTap: (index) {
-          ref.read(pageNavigationProvider.notifier).state = index;
-          _pageController.animateToPage(
-              duration: const Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-              index);
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.self_improvement_rounded),
-            label: 'Calendar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.supervised_user_circle_rounded),
-            label: 'Alerts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Shortcuts',
-          ),
-        ],
       ),
     );
   }

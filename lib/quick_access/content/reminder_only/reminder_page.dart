@@ -52,30 +52,22 @@ class _ReminderPageState extends State<ReminderPage> {
     setState(() {
       _reminders = reminders;
     });
-    // Removed: await _reminderLogic.scheduleReminders(_reminders);
   }
 
   Future<void> _addReminder(
       String title, String description, DateTime scheduledTime) async {
     print('[DEBUG] _addReminder called with title: $title, description: $description, scheduledTime: $scheduledTime');
     try {
-      // Update FCM token in Firestore (merge)
-      String? userId = FirebaseAuth.instance.currentUser?.uid;
-      String? fcmToken = await FirebaseMessaging.instance.getToken();
-      if (userId != null && fcmToken != null) {
-        await FirebaseFirestore.instance.collection('users').doc(userId).set({
-          'fcmToken': fcmToken,
-        }, SetOptions(merge: true));
-        print('[DEBUG] FCM token updated in Firestore for user: $userId');
-      }
       await _reminderLogic.addReminder(
           widget.userId, title, description, scheduledTime);
-      print('[DEBUG] Reminder added to Firestore');
-      // Schedule WorkManager notification fallback
       final delay = scheduledTime.difference(DateTime.now()).inSeconds;
       print('[DEBUG] Calculated delay for WorkManager: $delay seconds');
       if (delay > 0) {
-        await workmanager_fallback.WorkManagerNotificationFallbackTest().scheduleWorkManagerNotification(delay);
+        await workmanager_fallback.WorkManagerNotificationFallbackTest().scheduleWorkManagerNotification(
+          delay,
+          title: title,
+          body: description,
+        );
         print('[DEBUG] WorkManager notification scheduled');
       } else {
         print('[DEBUG] Delay not positive, notification not scheduled');
@@ -91,7 +83,7 @@ class _ReminderPageState extends State<ReminderPage> {
   }
 
   Future<void> _deleteReminder(Reminder reminder) async {
-    await _reminderLogic.deleteReminder(reminder.id);
+    await _reminderLogic.deleteReminder(widget.userId, reminder.id);
     _fetchReminders();
   }
 
@@ -131,6 +123,8 @@ class _ReminderPageState extends State<ReminderPage> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final upcomingReminders = _reminders.where((r) => r.scheduledTime.isAfter(now)).toList();
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -174,96 +168,95 @@ class _ReminderPageState extends State<ReminderPage> {
 
           // Replace the fixed height Container with Expanded
           Expanded(
-  child: _reminders.isEmpty
-      ? ListView.builder(
-          itemCount: 1, // Show just one item
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 20, vertical: 12),
-              child: Container(
-                height: 80, // Set height similar to regular tiles
-                decoration: BoxDecoration(
-                  color: Colors.green.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: const Center(
-                  child: Text(
-                    'Add some reminders!',
-                    style: TextStyle(
-                      fontFamily: 'Mulish',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black54,
+      child: upcomingReminders.isEmpty
+          ? ListView.builder(
+              itemCount: 1, // Show just one item
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 12),
+                  child: Container(
+                    height: 80, // Set height similar to regular tiles
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade100,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ),
-                ),
-              ),
-            );
-          },
-        )
-      : ListView.builder(
-          itemCount: _reminders.length,
-          itemBuilder: (context, index) {
-            final reminder = _reminders[index];
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 20, vertical: 12),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(8),
-                child: ListTile(
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete,
-                        color: Colors.grey.shade700),
-                    onPressed: () => _deleteReminder(reminder),
-                  ),
-                  leading: Icon(
-                    Icons.alarm,
-                    size: 30,
-                    color: Color.fromRGBO(106, 172, 67, 1),
-                  ),
-                  title: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        reminder.title,
-                        style: const TextStyle(
+                    padding: const EdgeInsets.all(8),
+                    child: const Center(
+                      child: Text(
+                        'Add some reminders!',
+                        style: TextStyle(
                           fontFamily: 'Mulish',
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        reminder.description,
-                        style: const TextStyle(
-                          fontFamily: 'Mulish',
-                          fontSize: 14,
                           color: Colors.black54,
                         ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        '${DateFormat.yMMMd().add_jm().format(reminder.scheduledTime)}',
-                        style: const TextStyle(
-                          fontFamily: 'Mulish',
-                          fontSize: 12,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            )
+          : ListView.builder(
+              itemCount: upcomingReminders.length,
+              itemBuilder: (context, index) {
+                final reminder = upcomingReminders[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 12),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    child: ListTile(
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete,
+                            color: Colors.grey.shade700),
+                        onPressed: () => _deleteReminder(reminder),
+                      ),
+                      leading: Icon(
+                        Icons.alarm,
+                        size: 30,
+                        color: Color.fromRGBO(106, 172, 67, 1),
+                      ),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            reminder.title,
+                            style: const TextStyle(
+                              fontFamily: 'Mulish',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            reminder.description,
+                            style: const TextStyle(
+                              fontFamily: 'Mulish',
+                              fontSize: 14,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '${DateFormat.yMMMd().add_jm().format(reminder.scheduledTime)}',
+                            style: const TextStyle(
+                              fontFamily: 'Mulish',
+                              fontSize: 12,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
 ),
 
 

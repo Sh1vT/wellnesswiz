@@ -58,7 +58,7 @@ class _ReminderPageState extends State<ReminderPage> {
   }
 
   Future<void> _deleteReminder(Reminder reminder) async {
-    await _reminderLogic.deleteReminder(reminder.id);
+    await _reminderLogic.deleteReminder(reminder.id, reminder.userId);
     _fetchReminders();
   }
 

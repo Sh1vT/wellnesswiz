@@ -18,36 +18,42 @@ class LogOutButton extends StatelessWidget {
       },
       child: Padding(
         padding: const EdgeInsets.only(top: 10, left: 20, right: 20, bottom: 30),
-        child: Container(
-          padding: EdgeInsets.all(20),
-          height: 80,
-          decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.all(Radius.circular(12))),
-          child: Center(
-            child: Row(
-              children: [
-                Icon(
-                  Icons.logout,
-                  size: 40,
-                  color: Colors.red.shade700,
-                ),
-                SizedBox(width: 20),
-                Text(
-                  'Log Out',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
+        child: Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(20),
+            height: 80,
+            decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.all(Radius.circular(12))),
+            child: Center(
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.logout,
+                    size: 40,
                     color: Colors.red.shade700,
-                    fontSize: 18,
-                    fontFamily: 'Mulish',
                   ),
-                ),
-                Spacer(),
-                Icon(
-                  Icons.navigate_next_rounded,
-                  color: Colors.red.shade700,
-                ),
-              ],
+                  SizedBox(width: 20),
+                  Text(
+                    'Log Out',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red.shade700,
+                      fontSize: 18,
+                      fontFamily: 'Mulish',
+                    ),
+                  ),
+                  Spacer(),
+                  Icon(
+                    Icons.navigate_next_rounded,
+                    color: Colors.red.shade700,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

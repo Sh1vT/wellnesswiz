@@ -3,9 +3,11 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 // import 'package:wellwiz/features/bot/bot_screen.dart'; // Not needed in modular
 
 class EmergencyScreen extends StatefulWidget {
@@ -68,53 +70,213 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
     debugPrint('Updated Contact List: $encodedContacts');
   }
 
-  void _showAddContactDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        final nameController = TextEditingController();
-        final phoneController = TextEditingController();
-
-        return AlertDialog(
-          title: const Text('Add Contact'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(hintText: 'Name'),
-                ),
-                TextField(
-                  controller: phoneController,
-                  decoration: const InputDecoration(hintText: 'Phone'),
-                ),
-              ],
-            ),
-          ),
+  void _showAddContactDialog() async {
+    final status = await Permission.contacts.status;
+    if (status.isGranted) {
+      // Permission already granted, proceed
+      await _showContactPicker();
+      return;
+    }
+    final result = await Permission.contacts.request();
+    if (result.isGranted) {
+      await _showContactPicker();
+      return;
+    } else if (result.isPermanentlyDenied) {
+      // Show a dialog explaining why permission is needed
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Contacts Permission Needed'),
+          content: const Text('This app needs access to your contacts to add emergency contacts. Please enable contacts permission in settings.'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
-                final name = nameController.text;
-                final phone = phoneController.text;
-                if (name.isNotEmpty && phone.isNotEmpty) {
-                  _saveContacts(ContactData(name: name, phone: phone));
-                  setState(() {});
-                  Navigator.pop(context);
-                } else {
-                  // Show snackbar or other error message for missing data
-                }
+                Navigator.of(context).pop();
+                openAppSettings();
               },
-              child: const Text('Save'),
+              child: const Text('Open Settings'),
             ),
           ],
+        ),
+      );
+      return;
+    } else {
+      // Permission denied (not permanently), optionally show a rationale or do nothing
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Contacts permission denied. Cannot add contacts.')),
+      );
+      return;
+    }
+  }
+
+  Future<void> _showContactPicker() async {
+    final List<Contact> allContacts = await FlutterContacts.getContacts(withProperties: true);
+    final Set<int> selectedIndexes = {};
+    final TextEditingController searchController = TextEditingController();
+    List<int> filteredIndexes = List.generate(allContacts.length, (i) => i);
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Scaffold(
+              appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(70),
+                child: AppBar(
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, color: ColorPalette.black, size: 20),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  title: const Text(
+                    'Select Contacts',
+                    style: TextStyle(
+                      color: ColorPalette.blackDarker,
+                      fontFamily: 'Mulish',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
+                  ),
+                  centerTitle: true,
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          backgroundColor: ColorPalette.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop(selectedIndexes.toList());
+                        },
+                        child: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish', fontSize: 13)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              backgroundColor: Colors.white,
+              body: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Search contacts',
+                        prefixIcon: Icon(Icons.search, color: ColorPalette.black),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+                      ),
+                      onChanged: (query) {
+                        setState(() {
+                          filteredIndexes = List.generate(allContacts.length, (i) => i).where((i) {
+                            final contact = allContacts[i];
+                            final name = contact.displayName.toLowerCase();
+                            final phone = (contact.phones.isNotEmpty) ? contact.phones.first.number : '';
+                            return name.contains(query.toLowerCase()) || phone.contains(query);
+                          }).toList();
+                        });
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredIndexes.length,
+                      itemBuilder: (context, idx) {
+                        final index = filteredIndexes[idx];
+                        final contact = allContacts[index];
+                        final name = contact.displayName;
+                        final phone = (contact.phones.isNotEmpty) ? contact.phones.first.number : null;
+                        if (phone == null) return const SizedBox.shrink();
+                        return Card(
+                          elevation: 2,
+                          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          color: ColorPalette.blackDarker,
+                                          fontFamily: 'Mulish',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        phone,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontFamily: 'Mulish',
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Checkbox(
+                                  value: selectedIndexes.contains(index),
+                                  onChanged: (selected) {
+                                    setState(() {
+                                      if (selected == true) {
+                                        selectedIndexes.add(index);
+                                      } else {
+                                        selectedIndexes.remove(index);
+                                      }
+                                    });
+                                  },
+                                  activeColor: ColorPalette.green,
+                                  side: const BorderSide(color: ColorPalette.black, width: 2),
+                                  checkColor: Colors.white,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
-    );
+    ).then((selected) async {
+      if (selected is List) {
+        for (final idx in selected) {
+          final contact = allContacts[idx];
+          final name = contact.displayName;
+          final phone = (contact.phones.isNotEmpty) ? contact.phones.first.number : null;
+          if (phone != null) {
+            await _saveContacts(ContactData(name: name, phone: phone));
+          }
+        }
+        setState(() {});
+      }
+    });
   }
 
   void _getPermission() async {
@@ -141,8 +303,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
           },
         ),
       ),
-      body: ListView(
+      body: Column(
         children: [
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -152,7 +315,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     fontWeight: FontWeight.w700,
                     fontFamily: 'Mulish',
                     fontSize: 40,
-                    color: Color.fromRGBO(106, 172, 67, 1)),
+                    color: ColorPalette.green),
               ),
               Text(
                 " Contacts",
@@ -160,57 +323,65 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                     fontWeight: FontWeight.w700,
                     fontFamily: 'Mulish',
                     fontSize: 40,
-                    color: const Color.fromRGBO(97, 97, 97, 1)),
+                    color: ColorPalette.black),
               ),
             ],
           ),
-          SizedBox(height: 12),
-          contacts.isEmpty
-              ? Container(
-                  margin: const EdgeInsets.all(16),
-                  height: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.green.shade100,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Add some emergency contacts!',
-                      style: TextStyle(fontFamily: 'Mulish'),
+          const SizedBox(height: 20),
+          if (contacts.isEmpty) ...[
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 24, right: 8),
+                child: ActionChip(
+                  avatar: const Icon(Icons.add, color: Colors.white, size: 20),
+                  label: const Text(
+                    'Add',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'Mulish',
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                )
-              : ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: contacts.length,
-                  itemBuilder: (context, index) {
-                    return ContactWidget(
-                      name: contacts[index].name,
-                      phone: contacts[index].phone,
-                      onDelete: _removeContact,
-                      index: index,
-                    );
-                  },
-                ),
-          Center(
-            child: Container(
-              height: 42,
-              width: 42,
-              margin: const EdgeInsets.only(right: 12, top: 10),
-              child: IconButton(
-                color: Colors.green.shade500,
-                onPressed: () {
-                  _getPermission();
-                  _showAddContactDialog();
-                },
-                icon: const Icon(
-                  Icons.add,
-                  size: 20,
+                  backgroundColor: ColorPalette.green,
+                  onPressed: _showAddContactDialog,
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 ),
               ),
             ),
-          ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: ColorPalette.greenSwatch[50],
+              ),
+              child: const Text(
+                'Add some emergency contacts!',
+                style: TextStyle(fontFamily: 'Mulish', fontSize: 15, color: ColorPalette.black),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          if (contacts.isNotEmpty)
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                itemCount: contacts.length,
+                itemBuilder: (context, index) {
+                  return ContactWidget(
+                    name: contacts[index].name,
+                    phone: contacts[index].phone,
+                    onDelete: _removeContact,
+                    index: index,
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );
@@ -252,70 +423,56 @@ class ContactWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<Color> colorPalette = [
-      Color.fromARGB(255, 145, 197, 123),
-      Color.fromARGB(255, 96, 172, 128),
-      Color.fromARGB(255, 66, 128, 113),
-    ];
-    Color randomColor = colorPalette[index % colorPalette.length];
-    return Column(
-      children: [
-        SizedBox(height: 8),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(16),
-          height: 100,
-          decoration: BoxDecoration(
-              // gradient: LinearGradient(colors: [randomColor, Colors.green.shade400]),
-              borderRadius: BorderRadius.circular(12),
-              color: randomColor),
-          child: Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.person,
-                  size: 60,
-                  color: randomColor,
-                ),
-              ),
-              const Spacer(),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.end,
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     name,
                     style: const TextStyle(
-                        fontFamily: 'Mulish',
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white),
+                      color: ColorPalette.blackDarker,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Mulish',
+                    ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     phone,
-                    style: const TextStyle(
-                        fontFamily: 'Mulish',
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                      fontFamily: 'Mulish',
+                    ),
                   ),
                 ],
               ),
-              Container(
-                margin: const EdgeInsets.only(left: 10),
-                child: IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => onDelete(index),
-                  color: Colors.white,
+            ),
+            IconButton(
+              icon: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  shape: BoxShape.circle,
                 ),
-              )
-            ],
-          ),
+                padding: const EdgeInsets.all(6),
+                child: const Icon(Icons.delete, color: ColorPalette.black, size: 18),
+              ),
+              onPressed: () => onDelete(index),
+              tooltip: 'Delete',
+              splashRadius: 20,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 } 

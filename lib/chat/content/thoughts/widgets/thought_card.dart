@@ -124,7 +124,7 @@ class _ThoughtCardState extends State<ThoughtCard> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: Text(
-                          "- Wisher   ",
+                          "Wisher",
                           style: TextStyle(
                               fontFamily: 'Mulish',
                               color: Colors.green.shade300,

@@ -1,30 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:wellwiz/chat/content/alerts/widgets/emergency_service.dart';
-import 'package:wellwiz/doctor/content/docs/widgets/app_page.dart';
-import 'package:wellwiz/login/login_page.dart';
-import 'package:wellwiz/quick_access/content/account/widgets/account_info_card.dart';
-import 'package:wellwiz/quick_access/content/account/widgets/quick_access_title.dart';
-import 'package:wellwiz/quick_access/content/bookings/widgets/my_bookings_button.dart';
-import 'package:wellwiz/quick_access/content/reminder_only/reminder_page.dart';
-import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
-import 'package:wellwiz/quick_access/content/logout/widgets/log_out_button.dart';
-import 'package:wellwiz/quick_access/content/positivity/widgets/daily_positivity_button.dart';
-import 'package:wellwiz/quick_access/content/reminders/widgets/my_reminders_button.dart';
-import 'package:wellwiz/quick_access/content/sos/widgets/sos_contacts_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class QuickAccessPage extends StatefulWidget {
-  const QuickAccessPage({super.key});
+class AccountInfoCard extends StatefulWidget {
+  const AccountInfoCard({Key? key}) : super(key: key);
 
   @override
-  State<QuickAccessPage> createState() => _QuickAccessPageState();
+  State<AccountInfoCard> createState() => _AccountInfoCardState();
 }
 
-class _QuickAccessPageState extends State<QuickAccessPage> {
-  final ThoughtsService _thoughtsService = ThoughtsService();
-
-  // Account info state
+class _AccountInfoCardState extends State<AccountInfoCard> {
   String? _handle;
   bool _isLoading = true;
   String? _error;
@@ -48,11 +33,6 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
       _handle = doc.data()?['handle'];
       _isLoading = false;
     });
-  }
-
-  Future<bool> _isHandleUnique(String handle) async {
-    final query = await FirebaseFirestore.instance.collection('users').where('handle', isEqualTo: handle).get();
-    return query.docs.isEmpty;
   }
 
   Future<void> _editDisplayName() async {
@@ -188,8 +168,8 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
                                 ),
                                 content: Text(
                                   type == 'followers'
-                                    ? 'Are you sure you want to remove \\${userData['displayName']} (@\\${userData['handle']}) from your followers?'
-                                    : 'Are you sure you want to unfollow \\${userData['displayName']} (@\\${userData['handle']})?',
+                                    ? "Are you sure you want to remove \${userData['displayName']} (@\${userData['handle']}) from your followers?"
+                                    : "Are you sure you want to unfollow \${userData['displayName']} (@\${userData['handle']})?",
                                   style: const TextStyle(fontFamily: 'Mulish'),
                                 ),
                                 actions: [
@@ -256,150 +236,226 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
     );
   }
 
-  Future<void> _pickTimeAndScheduleDailyThought() async {
-    final TimeOfDay? selectedTime = await showTimePicker(
-      helpText: "Choose time for daily positive thoughts!",
-      context: context,
-      initialTime: TimeOfDay.now(),
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: Color.fromRGBO(106, 172, 67, 1),
-            colorScheme: ColorScheme.light(primary: Color.fromRGBO(106, 172, 67, 1)),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (selectedTime != null) {
-      final int hour = selectedTime.hour;
-      final int minute = selectedTime.minute;
-      print('[DEBUG] Picked time for positivity: ' + hour.toString() + ':' + minute.toString());
-      await _thoughtsService.scheduleDailyThoughtNotification(hour, minute);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              "Daily positive thought scheduled for "+selectedTime.format(context)+"!"),
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: [
-        const QuickAccessTitle(),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: AccountInfoCard(),
-        ),
-        const SizedBox(height: 32),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 2.8,
-            children: [
-              _QuickAccessGridTile(
-                icon: Icons.alarm,
-                label: 'Remind',
-                onTap: () {
-                  String userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return ReminderPage(userId: userId);
-                  }));
-                },
-              ),
-              _QuickAccessGridTile(
-                icon: Icons.health_and_safety_outlined,
-                label: 'Positivity',
-                onTap: _pickTimeAndScheduleDailyThought,
-              ),
-              _QuickAccessGridTile(
-                icon: Icons.notifications_active_outlined,
-                label: 'SOS',
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return EmergencyScreen();
-                  }));
-                },
-              ),
-              _QuickAccessGridTile(
-                icon: Icons.logout,
-                label: 'Logout',
-                iconColor: Colors.red.shade700,
-                onTap: () async {
-                  await FirebaseAuth.instance.signOut();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    (route) => false,
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 32),
-      ],
-    );
-  }
-}
-
-class _QuickAccessGridTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  final Color? iconColor;
-
-  const _QuickAccessGridTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-    this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
+    final user = FirebaseAuth.instance.currentUser;
+    if (_isLoading) {
+      // Shimmer placeholder
+      return Card(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        color: Colors.grey.shade100,
+        color: Colors.white,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(icon, size: 28, color: iconColor ?? Color.fromRGBO(106, 172, 67, 1)),
-              const SizedBox(width: 12),
+              Container(
+                width: 76,
+                height: 76,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 18),
               Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontFamily: 'Mulish',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: iconColor ?? Colors.grey.shade700,
-                  ),
-                  textAlign: TextAlign.left,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 20,
+                      width: 120,
+                      color: Colors.grey.shade200,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 16,
+                      width: 80,
+                      color: Colors.grey.shade200,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 14,
+                      width: 100,
+                      color: Colors.grey.shade200,
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Container(
+                          height: 28,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Container(
+                          height: 28,
+                          width: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
+      );
+    }
+    if (user == null) {
+      return const Center(child: Text('No user signed in.'));
+    }
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Color.fromRGBO(106, 172, 67, 1),
+                      width: 3,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 38,
+                    backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
+                    child: user.photoURL == null
+                        ? const Icon(Icons.account_circle, size: 60, color: Colors.grey)
+                        : null,
+                    backgroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              user.displayName ?? 'No display name',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromRGBO(106, 172, 67, 1),
+                                fontFamily: 'Mulish',
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.grey.shade700, size: 22),
+                            tooltip: 'Edit display name',
+                            onPressed: _editDisplayName,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      if (_handle != null)
+                        Text(
+                          '@$_handle',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Color.fromARGB(255, 106, 172, 67),
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Mulish',
+                          ),
+                        ),
+                      const SizedBox(height: 2),
+                      Text(
+                        user.email ?? 'No email',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                          fontFamily: 'Mulish',
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => _showUserListSheet('followers', 'Followers'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Color.fromRGBO(106, 172, 67, 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        FutureBuilder(
+                          future: FirebaseFirestore.instance.collection('users').doc(user.uid).collection('followers').get(),
+                          builder: (context, snapshot) {
+                            final count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                            return Text('$count', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish', fontSize: 15, color: Color.fromRGBO(106, 172, 67, 1)));
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        const Text('Followers', style: TextStyle(fontFamily: 'Mulish', fontSize: 14, color: Color.fromRGBO(106, 172, 67, 1))),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () => _showUserListSheet('following', 'Following'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Color.fromRGBO(106, 172, 67, 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        FutureBuilder(
+                          future: FirebaseFirestore.instance.collection('users').doc(user.uid).collection('following').get(),
+                          builder: (context, snapshot) {
+                            final count = snapshot.hasData ? snapshot.data!.docs.length : 0;
+                            return Text('$count', style: const TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish', fontSize: 15, color: Color.fromRGBO(106, 172, 67, 1)));
+                          },
+                        ),
+                        const SizedBox(width: 6),
+                        const Text('Following', style: TextStyle(fontFamily: 'Mulish', fontSize: 14, color: Color.fromRGBO(106, 172, 67, 1))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
-}
+} 
