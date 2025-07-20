@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wellwiz/chat/content/bot/widgets/bot_screen.dart';
 import 'package:wellwiz/doctor/content/prescriptions/models/prescription.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 import 'dart:math' as math;
@@ -60,7 +59,7 @@ class _PrescriptionsSectionState extends State<PrescriptionsSection> {
 
     // --- Reminder scheduling logic ---
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    if (userId.isNotEmpty && prescription.startDate != null) {
+    if (userId.isNotEmpty) {
       for (final t in prescription.times) {
         final parts = t.split(":");
         final hour = int.parse(parts[0]);
@@ -84,11 +83,10 @@ class _PrescriptionsSectionState extends State<PrescriptionsSection> {
               userId: userId,
               title: prescription.medicineName,
               description:
-                  'Take ${prescription.dosage} tablet(s)' +
-                  (prescription.instructions != null &&
+                  'Take ${prescription.dosage} tablet(s)${prescription.instructions != null &&
                           prescription.instructions!.trim().isNotEmpty
                       ? '\nNote: ${prescription.instructions}'
-                      : ''),
+                      : ''}',
               scheduledTime: scheduledTime,
             );
           } else {
@@ -213,7 +211,7 @@ class _PrescriptionsSectionState extends State<PrescriptionsSection> {
   Future<Map<String, dynamic>> _getTakenMeds() async {
     final pref = await SharedPreferences.getInstance();
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    final key = 'taken_meds_' + userId;
+    final key = 'taken_meds_$userId';
     final jsonStr = pref.getString(key);
     if (jsonStr == null) return {};
     return jsonDecode(jsonStr);
@@ -227,7 +225,7 @@ class _PrescriptionsSectionState extends State<PrescriptionsSection> {
   }) async {
     final pref = await SharedPreferences.getInstance();
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    final key = 'taken_meds_' + userId;
+    final key = 'taken_meds_$userId';
     final taken = await _getTakenMeds();
     final takenKey = '$medName|$date|$time';
     if (value == false) {
@@ -273,7 +271,7 @@ class _PrescriptionsSectionState extends State<PrescriptionsSection> {
     }
     // Remove all taken states for this medicine and time slot
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    final key = 'taken_meds_' + userId;
+    final key = 'taken_meds_$userId';
     final taken = await _getTakenMeds();
     final keysToRemove = taken.keys
         .where(

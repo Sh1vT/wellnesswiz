@@ -50,7 +50,7 @@ class _UserSearchSectionState extends ConsumerState<UserSearchSection> {
                   stream: FirebaseFirestore.instance
                       .collection('users')
                       .where('handle', isGreaterThanOrEqualTo: _searchTerm)
-                      .where('handle', isLessThanOrEqualTo: _searchTerm + '\uf8ff')
+                      .where('handle', isLessThanOrEqualTo: '$_searchTerm\uf8ff')
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {

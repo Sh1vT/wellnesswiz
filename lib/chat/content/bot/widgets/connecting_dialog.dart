@@ -3,7 +3,7 @@ import 'package:wellwiz/utils/color_palette.dart';
 
 class ConnectingDialog extends StatelessWidget {
   final String message;
-  const ConnectingDialog({Key? key, this.message = 'Connecting to services...'}) : super(key: key);
+  const ConnectingDialog({super.key, this.message = 'Connecting to services...'});
 
   @override
   Widget build(BuildContext context) {

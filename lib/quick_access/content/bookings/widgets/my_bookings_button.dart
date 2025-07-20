@@ -7,11 +7,11 @@ class MyBookingsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
     return GestureDetector(
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return UserAppointmentsPage(userId: _auth.currentUser?.uid ?? '');
+          return UserAppointmentsPage(userId: auth.currentUser?.uid ?? '');
         }));
       },
       child: Padding(

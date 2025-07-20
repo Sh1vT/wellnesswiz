@@ -5,7 +5,7 @@ import 'package:wellwiz/utils/typing_indicator.dart';
 
 class MessageTile extends StatelessWidget {
   const MessageTile({
-    Key? key,
+    super.key,
     required this.sendByMe,
     this.message,
     required this.senderName,
@@ -13,7 +13,7 @@ class MessageTile extends StatelessWidget {
     this.timestamp,
     this.typingIndicator = false,
     this.senderId,
-  }) : super(key: key);
+  });
 
   final bool sendByMe;
   final String? message;

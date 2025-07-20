@@ -3,7 +3,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wellwiz/secrets.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 
 class EmotionMonitor extends StatefulWidget {
@@ -251,7 +250,7 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
           padding: EdgeInsets.all(20),
           child: Column(
             children: [
-              Container(
+              SizedBox(
                 height: 300,
                 child: Stack(
                   children: [

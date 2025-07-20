@@ -10,7 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class HospitalDetailsBottomSheet extends StatefulWidget {
   final Hospital hospital;
-  const HospitalDetailsBottomSheet({Key? key, required this.hospital}) : super(key: key);
+  const HospitalDetailsBottomSheet({super.key, required this.hospital});
 
   @override
   State<HospitalDetailsBottomSheet> createState() => _HospitalDetailsBottomSheetState();
@@ -341,7 +341,7 @@ class _HospitalDetailsBottomSheetState extends State<HospitalDetailsBottomSheet>
                 else if (ratings.isEmpty)
                   const Text('No reviews yet.')
                 else
-                  ...ratings.reversed.map((r) => _buildReviewTile(r)).toList(),
+                  ...ratings.reversed.map((r) => _buildReviewTile(r)),
               ],
             ),
           ],

@@ -6,14 +6,14 @@ import 'package:lottie/lottie.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:wellwiz/utils/exercise_music_service.dart';
-import 'package:wellwiz/mental_peace/content/models/exercise_music.dart';
 import 'package:wellwiz/utils/poppy_tile.dart';
 import 'package:wellwiz/utils/color_palette.dart';
+import 'package:marquee/marquee.dart';
 
 class ExerciseScreen extends StatefulWidget {
   final String exercise;
 
-  ExerciseScreen({required this.exercise});
+  const ExerciseScreen({super.key, required this.exercise});
 
   @override
   _ExerciseScreenState createState() => _ExerciseScreenState();
@@ -27,11 +27,12 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
   int _currentPhaseIndex = 0;
   String _currentInstruction = 'Get ready...';
   late AudioPlayer _audioPlayer;
-  bool _isFadingOut = false;
-  double _opacity = 1.0;
+  bool _isTimerFading = false;
+  double _timerOpacity = 1.0;
   final CarouselSliderController _carouselController =
       CarouselSliderController();
   List<Map<String, dynamic>> _exerciseSteps = [];
+  bool _isPaused = false;
 
   @override
   void initState() {
@@ -63,19 +64,34 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
   void startTimer() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (_isPaused) return;
       setState(() {
         if (_elapsedTime < _totalDuration) {
           _elapsedTime++;
           _instructionElapsedTime++;
           if (_instructionElapsedTime ==
               (_exerciseSteps[_currentPhaseIndex]['duration'] as int)) {
-            _advanceToNextPhase();
+            // Fade out timer before advancing
+            _fadeOutTimerAndAdvance();
           }
         } else {
           _showCompletionDialog();
           _timer.cancel();
         }
       });
+    });
+  }
+
+  void _fadeOutTimerAndAdvance() async {
+    setState(() {
+      _isTimerFading = true;
+      _timerOpacity = 0.0;
+    });
+    await Future.delayed(const Duration(milliseconds: 200));
+    _advanceToNextPhase();
+    setState(() {
+      _timerOpacity = 1.0;
+      _isTimerFading = false;
     });
   }
 
@@ -168,6 +184,19 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     );
   }
 
+  void _togglePause() async {
+    setState(() {
+      _isPaused = !_isPaused;
+    });
+    if (_isPaused) {
+      _timer.cancel();
+      await _audioPlayer.pause();
+    } else {
+      startTimer();
+      await _audioPlayer.resume();
+    }
+  }
+
   @override
   void dispose() {
     _timer.cancel();
@@ -210,119 +239,99 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
             ),
             SizedBox(height: 40),
             // Vertical carousel for instructions
-            Container(
-              height:
-                  140, // Further reduced height to bring instructions closer
-              child: CarouselSlider.builder(
-                carouselController: _carouselController,
-                itemCount: _exerciseSteps.length,
-                options: CarouselOptions(
-                  height: 140, // Match container height
-                  viewportFraction:
-                      0.4, // Back to smaller to show prev/next properly
-                  enlargeCenterPage: true,
-                  padEnds: true,
-                  autoPlay: false, // We control it manually
-                  enableInfiniteScroll: true,
-                  initialPage: 0,
-                  onPageChanged: (index, reason) {
-                    setState(() {
-                      _currentPhaseIndex = index;
-                      _currentInstruction =
-                          _exerciseSteps[index]['instruction'];
-                      _instructionElapsedTime = 0;
-                    });
-                  },
-                  scrollPhysics:
-                      NeverScrollableScrollPhysics(), // Disable manual scrolling
-                  pageSnapping: true,
-                  scrollDirection: Axis.vertical,
-                ),
-                itemBuilder: (context, index, realIdx) {
-                  // Calculate if this is the current, previous, or next instruction
-                  final isCurrent = index == _currentPhaseIndex;
-                  final isPrevious =
-                      index ==
-                      (_currentPhaseIndex - 1 + _exerciseSteps.length) %
-                          _exerciseSteps.length;
-                  final isNext =
-                      index == (_currentPhaseIndex + 1) % _exerciseSteps.length;
-
-                  return Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 2,
-                    ), // Much smaller vertical padding
-                    child: Center(
-                      child: isCurrent
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                // Timer widget on left
-                                Container(
-                                  padding: EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Color.fromRGBO(106, 172, 67, 0.1),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: Color.fromRGBO(106, 172, 67, 1),
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.timer,
-                                        color: Color.fromRGBO(106, 172, 67, 1),
-                                        size: 16,
-                                      ),
-                                      SizedBox(width: 6),
-                                      Text(
-                                        '${(_exerciseSteps[_currentPhaseIndex]['duration'] as int) - _instructionElapsedTime}',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color.fromRGBO(
-                                            106,
-                                            172,
-                                            67,
-                                            1,
-                                          ),
-                                          fontFamily: 'Mulish',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 15),
-                                Expanded(
-                                  child: Text(
-                                    _exerciseSteps[index]['instruction'],
-                                    style: TextStyle(
-                                      fontSize: 24, // Smaller text
-                                      color: Color.fromRGBO(106, 172, 67, 1),
-                                      fontFamily: 'Mulish',
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Text(
-                              _exerciseSteps[index]['instruction'],
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey.shade500,
-                                fontFamily: 'Mulish',
-                                fontWeight: FontWeight.w400,
-                              ),
-                              textAlign: TextAlign.center,
+            SizedBox(
+              height: 140, // Further reduced height to bring instructions closer
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Timer (fixed left, vertically centered)
+                  AnimatedOpacity(
+                    opacity: _timerOpacity,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      width: 60,
+                      height: 40,
+                      alignment: Alignment.centerLeft,
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Color.fromRGBO(106, 172, 67, 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Color.fromRGBO(106, 172, 67, 1),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.timer,
+                            color: Color.fromRGBO(106, 172, 67, 1),
+                            size: 16,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            '${(_exerciseSteps.isNotEmpty && _currentPhaseIndex < _exerciseSteps.length) ? ((_exerciseSteps[_currentPhaseIndex]['duration'] as int) - _instructionElapsedTime) : ''}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromRGBO(106, 172, 67, 1),
+                              fontFamily: 'Mulish',
                             ),
+                          ),
+                        ],
+                      ),
                     ),
-                  );
-                },
+                  ),
+                  SizedBox(width: 15),
+                  // Carousel (instructions only)
+                  Expanded(
+                    child: CarouselSlider.builder(
+                      carouselController: _carouselController,
+                      itemCount: _exerciseSteps.length,
+                      options: CarouselOptions(
+                        height: 140, // Match container height
+                        viewportFraction: 0.4,
+                        enlargeCenterPage: true,
+                        padEnds: true,
+                        autoPlay: false,
+                        enableInfiniteScroll: true,
+                        initialPage: 0,
+                        onPageChanged: (index, reason) {
+                          setState(() {
+                            _currentPhaseIndex = index;
+                            _currentInstruction = _exerciseSteps[index]['instruction'];
+                            _instructionElapsedTime = 0;
+                          });
+                        },
+                        scrollPhysics: NeverScrollableScrollPhysics(),
+                        pageSnapping: true,
+                        scrollDirection: Axis.vertical,
+                      ),
+                      itemBuilder: (context, index, realIdx) {
+                        final isCurrent = index == _currentPhaseIndex;
+                        return Container(
+                          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+                          alignment: Alignment.center,
+                          child: Text(
+                            _exerciseSteps[index]['instruction'],
+                            style: TextStyle(
+                              fontSize: isCurrent ? 18 : 15,
+                              color: isCurrent
+                                  ? Color.fromRGBO(106, 172, 67, 1)
+                                  : Colors.grey.shade500,
+                              fontFamily: 'Mulish',
+                              fontWeight: isCurrent ? FontWeight.w600 : FontWeight.w400,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 60), // Increased gap to move GIF further down
@@ -353,24 +362,39 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                   ),
                   Positioned(
                     bottom: -15, // Positioned so circumference line goes through timer
-                    child: PoppyTile(
-                      borderRadius: 25,
-                      backgroundColor: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      child: Text(
-                        '${(_totalDuration - _elapsedTime) ~/ 60}:${((_totalDuration - _elapsedTime) % 60).toString().padLeft(2, '0')}',
-                        style: TextStyle(
-                          color: ColorPalette.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Mulish',
+                    child: GestureDetector(
+                      onTap: _togglePause,
+                      child: PoppyTile(
+                        borderRadius: 25,
+                        backgroundColor: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _isPaused ? Icons.play_circle_fill : Icons.pause_circle_filled,
+                              color: _isPaused ? Colors.green : Colors.amber,
+                              size: 22,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              '${(_totalDuration - _elapsedTime) ~/ 60}:${((_totalDuration - _elapsedTime) % 60).toString().padLeft(2, '0')}',
+                              style: TextStyle(
+                                color: ColorPalette.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Mulish',
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -381,7 +405,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
             // Exercise title below the GIF
             SizedBox(height: 40),
             Text(
-              widget.exercise + " Breathing",
+              "${widget.exercise} Breathing",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,

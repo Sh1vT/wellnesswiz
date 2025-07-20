@@ -1,8 +1,6 @@
 import 'package:workmanager/workmanager.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:wellwiz/secrets.dart';
 import 'package:intl/intl.dart'; // For unique ID generation
-import 'package:flutter/material.dart'; // For TimeOfDay
+// For TimeOfDay
 import 'dart:math';
 
 class ThoughtsService {
@@ -56,12 +54,7 @@ class ThoughtsService {
       nextOccurrence = nextOccurrence.add(Duration(days: 1));
     }
     Duration initialDelay = nextOccurrence.difference(now);
-    print('[DEBUG] Scheduling thoughtTask with inputData: {'
-        'title: Positive Thought, '
-        'description: ' + getRandomThought() + ', '
-        'hour: ' + hour.toString() + ', '
-        'minute: ' + minute.toString() +
-        '}');
+    print('[DEBUG] Scheduling thoughtTask with inputData: {title: Positive Thought, description: ${getRandomThought()}, hour: $hour, minute: $minute}');
     await Workmanager().registerOneOffTask(
       'daily_thought_task_${nextOccurrence.millisecondsSinceEpoch}',
       'thoughtTask',

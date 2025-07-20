@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,7 +7,7 @@ import 'package:wellwiz/doctor/content/mhps/widgets/mhp_tile.dart';
 
 class MhpView extends StatefulWidget {
   final String userId;
-  MhpView({super.key, required this.userId});
+  const MhpView({super.key, required this.userId});
 
   @override
   State<MhpView> createState() => _MhpViewState();

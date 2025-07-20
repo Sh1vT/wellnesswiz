@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../providers/user_info_provider.dart';
 
 class EditAccountInfoSheet extends ConsumerStatefulWidget {
-  const EditAccountInfoSheet({Key? key}) : super(key: key);
+  const EditAccountInfoSheet({super.key});
 
   @override
   ConsumerState<EditAccountInfoSheet> createState() => _EditAccountInfoSheetState();
@@ -199,8 +199,7 @@ class _GenderIconButton extends StatelessWidget {
     required this.icon,
     required this.selected,
     required this.onTap,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

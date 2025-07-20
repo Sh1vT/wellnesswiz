@@ -20,7 +20,7 @@ class ChatPage extends ConsumerWidget {
     return ListView(
       padding: EdgeInsets.zero,
       children: [
-        Container(
+        SizedBox(
           height: 60,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

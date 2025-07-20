@@ -9,17 +9,9 @@ import 'package:wellwiz/globalScaffold/global_scaffold.dart';
 import 'package:wellwiz/login/login_page.dart';
 import 'package:wellwiz/providers/user_info_provider.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/workmanager_notification_fallback.dart' show callbackDispatcher;
-import 'package:wellwiz/utils/achievement_uploader.dart';
-import 'package:wellwiz/utils/chatroom_uploader.dart';
-import 'package:wellwiz/utils/exercise_music_uploader.dart';
-import 'package:wellwiz/utils/hospital_utils.dart';
-import 'package:wellwiz/utils/thought_uploader.dart';
 import 'package:workmanager/workmanager.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:wellwiz/doctor/doctor_page.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 import 'package:wellwiz/onboarding/app_tour_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wellwiz/globalScaffold/splash_screen.dart';
 import 'package:wellwiz/utils/app_initializer.dart';
 import 'package:flutter/services.dart';
@@ -192,10 +184,8 @@ class _MyAppState extends ConsumerState<MyApp> {
         ).copyWith(
           primary: ColorPalette.green,
           secondary: ColorPalette.green,
-          background: Colors.white,
           onPrimary: Colors.white,
           onSecondary: Colors.white,
-          onBackground: ColorPalette.black,
           surface: Colors.white,
           onSurface: ColorPalette.blackDarker,
         ),

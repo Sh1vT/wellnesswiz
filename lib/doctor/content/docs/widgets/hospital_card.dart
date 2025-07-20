@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 import 'package:wellwiz/utils/hospital_utils.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
 import 'hospital_details_bottom_sheet.dart';
 import 'package:wellwiz/utils/poppy_tile.dart';
@@ -9,7 +8,7 @@ import 'package:wellwiz/utils/poppy_tile.dart';
 class HospitalCard extends StatelessWidget {
   final Hospital hospital;
   final double? averageRating;
-  const HospitalCard({Key? key, required this.hospital, this.averageRating}) : super(key: key);
+  const HospitalCard({super.key, required this.hospital, this.averageRating});
 
   void _showDetails(BuildContext context) {
     showModalBottomSheet(
@@ -129,7 +128,7 @@ class HospitalCard extends StatelessWidget {
 }
 
 class HospitalCardShimmer extends StatelessWidget {
-  const HospitalCardShimmer({Key? key}) : super(key: key);
+  const HospitalCardShimmer({super.key});
 
   @override
   Widget build(BuildContext context) {

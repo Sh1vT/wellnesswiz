@@ -4,7 +4,7 @@ import 'chatroom_screen.dart';
 
 class ChatroomChip extends StatelessWidget {
   final ChatroomModel chatroom;
-  const ChatroomChip({required this.chatroom, Key? key}) : super(key: key);
+  const ChatroomChip({required this.chatroom, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -40,10 +40,10 @@ class ChatroomChip extends StatelessWidget {
             CircleAvatar(
               radius: 20,
               backgroundColor: Colors.grey.shade100,
-              backgroundImage: chatroom.imageUrl != null && chatroom.imageUrl.isNotEmpty
+              backgroundImage: chatroom.imageUrl.isNotEmpty
                   ? NetworkImage(chatroom.imageUrl)
                   : null,
-              child: (chatroom.imageUrl == null || chatroom.imageUrl.isEmpty)
+              child: (chatroom.imageUrl.isEmpty)
                   ? Icon(Icons.chat_bubble_outline, color: Color.fromARGB(255, 106, 172, 67), size: 22)
                   : null,
               onBackgroundImageError: (_, __) {},
@@ -73,7 +73,7 @@ class ChatroomChip extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (chatroom.theme != null && chatroom.theme.isNotEmpty) ...[
+                if (chatroom.theme.isNotEmpty) ...[
                   SizedBox(height: 4),
                   Row(
                     children: [

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
 
 // INSTRUCTIONS:
@@ -29,8 +28,8 @@ const String channelDesc = 'Channel for WorkManager fallback notifications (v2).
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     print('[DEBUG] WorkManager: callbackDispatcher started');
-    print('[DEBUG] Task name: ' + task);
-    print('[DEBUG] Input data: ' + inputData.toString());
+    print('[DEBUG] Task name: $task');
+    print('[DEBUG] Input data: $inputData');
     final FlutterLocalNotificationsPlugin plugin = FlutterLocalNotificationsPlugin();
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -54,7 +53,7 @@ void callbackDispatcher() {
       print('[DEBUG] thoughtTask branch entered');
       notifTitle = 'Positive Thought';
       notifBody = inputData?['description'] ?? ThoughtsService.getRandomThought();
-      print('[DEBUG] Chosen thought for notification: ' + notifBody);
+      print('[DEBUG] Chosen thought for notification: $notifBody');
       // Reschedule for the next day at the same time
       int hour = int.tryParse(inputData?['hour'] ?? '') ?? 8;
       int minute = int.tryParse(inputData?['minute'] ?? '') ?? 0;
@@ -80,6 +79,8 @@ void callbackDispatcher() {
 }
 
 class WorkManagerNotificationFallbackTest extends StatelessWidget {
+  const WorkManagerNotificationFallbackTest({super.key});
+
   Future<void> scheduleWorkManagerNotification(int seconds, {String? title, String? body}) async {
     print('[DEBUG] Scheduling WorkManager notification for $seconds seconds from now');
     await Workmanager().registerOneOffTask(

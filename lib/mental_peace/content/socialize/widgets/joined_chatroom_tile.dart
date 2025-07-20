@@ -5,7 +5,7 @@ import 'chatroom_screen.dart';
 
 class JoinedChatroomTile extends StatelessWidget {
   final ChatroomModel chatroom;
-  const JoinedChatroomTile({required this.chatroom, Key? key}) : super(key: key);
+  const JoinedChatroomTile({required this.chatroom, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +85,7 @@ class JoinedChatroomTile extends StatelessWidget {
                 if (docs.isEmpty) {
                   return Text('No messages yet', style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontFamily: 'Mulish'));
                 }
-                final data = docs.first.data() as Map<String, dynamic>;
+                final data = docs.first.data();
                 final sender = data['senderName'] ?? 'User';
                 final message = data['message'] ?? '';
                 return Text(

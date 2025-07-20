@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,8 +11,6 @@ import 'package:wellwiz/doctor/content/metrics/models/scan_entry.dart';
 import 'package:wellwiz/secrets.dart';
 import 'package:wellwiz/doctor/content/metrics/models/metric_entry.dart';
 import 'package:wellwiz/doctor/content/metrics/widgets/metric_table.dart';
-import 'package:wellwiz/doctor/content/metrics/widgets/metric_trend_chart.dart';
-import 'package:wellwiz/doctor/content/metrics/widgets/report_type_selector.dart';
 import 'package:wellwiz/doctor/content/metrics/widgets/extracted_metrics_dialog.dart';
 import 'package:wellwiz/doctor/content/metrics/widgets/image_picker_dialog.dart';
 import 'package:wellwiz/utils/metrics_utils.dart';
@@ -32,7 +29,7 @@ class HealthMetricsSection extends StatefulWidget {
 
 class _HealthMetricsSectionState extends State<HealthMetricsSection> {
   List<List<dynamic>> tableList = [];
-  bool _isTableExpanded = false;
+  final bool _isTableExpanded = false;
   late File _image;
   late final GenerativeModel _model;
   static const _apiKey = geminikey;
@@ -182,7 +179,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
         detectedType: detectedType,
         onSave: (metrics, selectedType) async {
           // If custom, persist it
-          if (selectedType != null && selectedType.trim().isNotEmpty &&
+          if (selectedType.trim().isNotEmpty &&
               !reportTypes.contains(selectedType.trim()) && selectedType != 'Custom') {
             await _addCustomReportType(selectedType.trim());
           }
@@ -200,7 +197,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
     final pref = await SharedPreferences.getInstance();
     String key = (reportType ?? 'Unknown').trim().isEmpty
         ? 'custom_report'
-        : reportType!.toLowerCase().replaceAll(' ', '_') + '_report';
+        : '${reportType!.toLowerCase().replaceAll(' ', '_')}_report';
     String? groupedJson = pref.getString('scan_grouped_history');
     Map<String, List<ScanEntry>> groupedHistory = {};
     if (groupedJson != null && groupedJson.isNotEmpty) {
@@ -326,15 +323,15 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
   The user has submitted a medical report in image form, and you need to extract body chemical levels. 
 
   Instructions:
-  1. Extract the body chemical levels from the medical report and format them as \"Title : Value : Integer\" where:
-    - \"Title\" is the name of the chemical or component. If it is written in short then write the full form or the more well-known version of that title.
-    - \"Value\" is the numerical level.
-    - \"Integer\" is 0, -1, or 1 depending on the following:
+  1. Extract the body chemical levels from the medical report and format them as "Title : Value : Integer" where:
+    - "Title" is the name of the chemical or component. If it is written in short then write the full form or the more well-known version of that title.
+    - "Value" is the numerical level.
+    - "Integer" is 0, -1, or 1 depending on the following:
       - 0: Level is within the normal range
       - -1: Level is below the normal range
       - 1: Level is above the normal range
 
-  Return the list of chemical levels in the format \"Title : Value : Integer\".\nIf nothing is found, return \"none\".
+  Return the list of chemical levels in the format "Title : Value : Integer".\nIf nothing is found, return "none".
   """;
     final content = [
       Content.multi([TextPart(prompt), DataPart('image/jpeg', imgBytes)]),
@@ -472,7 +469,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
               ),
             ],
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -555,10 +552,11 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                       ),
                       selected: selectedType == type,
                       onSelected: (selected) {
-                        if (selected)
+                        if (selected) {
                           setState(() {
                             selectedReportType = type;
                           });
+                        }
                       },
                     ),
                   )
@@ -830,10 +828,11 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           onSelected: (selected) {
-                            if (selected)
+                            if (selected) {
                               setState(() {
                                 selectedReportType = type;
                               });
+                            }
                           },
                         );
                       },
@@ -908,10 +907,9 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          'Date: ' +
-                                              (latest.timestamp != null
+                                          'Date: ${latest.timestamp != null
                                                   ? '${latest.timestamp.year}-${latest.timestamp.month.toString().padLeft(2, '0')}-${latest.timestamp.day.toString().padLeft(2, '0')}'
-                                                  : ''),
+                                                  : ''}',
                                           style: TextStyle(
                                             color: ColorPalette.blackDarker,
                                             fontWeight: FontWeight.bold,
@@ -919,10 +917,9 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                                           ),
                                         ),
                                         Text(
-                                          'Time: ' +
-                                              (latest.timestamp != null
+                                          'Time: ${latest.timestamp != null
                                                   ? '${latest.timestamp.hour.toString().padLeft(2, '0')}:${latest.timestamp.minute.toString().padLeft(2, '0')}'
-                                                  : ''),
+                                                  : ''}',
                                           style: TextStyle(
                                             color: ColorPalette.blackDarker,
                                             fontWeight: FontWeight.bold,

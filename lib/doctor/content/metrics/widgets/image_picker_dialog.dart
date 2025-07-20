@@ -6,10 +6,10 @@ class ImagePickerDialog extends StatelessWidget {
   final VoidCallback onGallery;
 
   const ImagePickerDialog({
-    Key? key,
+    super.key,
     required this.onCamera,
     required this.onGallery,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

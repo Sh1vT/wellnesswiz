@@ -8,11 +8,11 @@ class MetricTrendDialog extends StatelessWidget {
   final List<Map<String, dynamic>> data;
 
   const MetricTrendDialog({
-    Key? key,
+    super.key,
     required this.metric,
     required this.unit,
     required this.data,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

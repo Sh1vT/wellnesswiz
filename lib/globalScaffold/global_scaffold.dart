@@ -1,15 +1,8 @@
-import 'dart:convert';
-import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:another_telephony/telephony.dart';
 import 'package:wellwiz/chat/chat_page.dart';
 import 'package:wellwiz/mental_peace/mental_peace_page.dart';
 import 'package:wellwiz/doctor/doctor_page.dart';
@@ -18,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wellwiz/providers/page_navigation_provider.dart';
 
 class GlobalScaffold extends ConsumerStatefulWidget {
+  const GlobalScaffold({super.key});
+
   @override
   ConsumerState<GlobalScaffold> createState() => _GlobalScaffoldState();
 }
@@ -56,7 +51,7 @@ class _GlobalScaffoldState extends ConsumerState<GlobalScaffold> {
     final selectedIndex = ref.watch(pageNavigationProvider);
     // Use Riverpod everywhere for user info. No UserInfoCache needed.
     // The chat page and quick access page now use the provider directly.
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       const ChatPage(),
       const MentalPeacePage(),
       DoctorPage(),
@@ -71,7 +66,7 @@ class _GlobalScaffoldState extends ConsumerState<GlobalScaffold> {
           onPageChanged: (index) {
             ref.read(pageNavigationProvider.notifier).state = index;
           },
-          children: _pages),
+          children: pages),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
         child: Container(

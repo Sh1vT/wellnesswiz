@@ -15,7 +15,7 @@ class TraitsSection extends StatefulWidget {
 class _TraitsSectionState extends State<TraitsSection> {
   Map<String, String> profileMap = {};
   bool emptyNow = false;
-  bool _isExpanded = false;
+  final bool _isExpanded = false;
 
   @override
   void initState() {
@@ -62,14 +62,14 @@ class _TraitsSectionState extends State<TraitsSection> {
   }
 
   void _showTraitDialog(BuildContext context, {String? initialValue, String? editKey}) {
-    TextEditingController _controller = TextEditingController(text: initialValue ?? '');
+    TextEditingController controller = TextEditingController(text: initialValue ?? '');
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(editKey == null ? 'New Trait' : 'Edit Trait'),
           content: TextField(
-            controller: _controller,
+            controller: controller,
             decoration: const InputDecoration(hintText: 'Details'),
           ),
           actions: [
@@ -85,11 +85,11 @@ class _TraitsSectionState extends State<TraitsSection> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
-                if (_controller.text.isNotEmpty) {
+                if (controller.text.isNotEmpty) {
                   if (editKey != null) {
-                    await _editProfileValue(editKey, _controller.text);
+                    await _editProfileValue(editKey, controller.text);
                   } else {
-                    _addProfileValue(_controller.text);
+                    _addProfileValue(controller.text);
                   }
                 }
                 Navigator.of(context).pop();

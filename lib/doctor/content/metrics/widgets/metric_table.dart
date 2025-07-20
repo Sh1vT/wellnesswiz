@@ -21,10 +21,10 @@ class MetricTable extends StatelessWidget {
   final void Function(String metricName) onMetricTap;
 
   const MetricTable({
-    Key? key,
+    super.key,
     required this.metrics,
     required this.onMetricTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +118,7 @@ class MetricTable extends StatelessWidget {
                   ),
                 ],
               );
-            }).toList(),
+            }),
           ],
         ),
         const SizedBox(height: 10), // Add space after the table
@@ -132,7 +132,7 @@ class MetricTable extends StatelessWidget {
       final unit = metricObj['unit'] ?? '';
       return unit != null && unit.toString().isNotEmpty ? '$value $unit' : value.toString();
     }
-    if (metricObj is dynamic && metricObj.value != null) {
+    if (metricObj.value != null) {
       final value = metricObj.value ?? metricObj.raw;
       final unit = metricObj.unit;
       return unit.isNotEmpty ? '$value $unit' : value.toString();
@@ -146,7 +146,7 @@ class MetricTable extends StatelessWidget {
       if (v is num) return v.toDouble();
       return double.tryParse(v?.toString() ?? '');
     }
-    if (metricObj is dynamic && metricObj.value != null) {
+    if (metricObj.value != null) {
       if (metricObj.value is num) return (metricObj.value as num).toDouble();
       return double.tryParse(metricObj.value.toString());
     }

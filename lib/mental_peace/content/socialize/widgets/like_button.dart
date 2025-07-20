@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class LikeButton extends StatefulWidget {
   final String postId;
-  const LikeButton({required this.postId, Key? key}) : super(key: key);
+  const LikeButton({required this.postId, super.key});
 
   @override
   State<LikeButton> createState() => _LikeButtonState();

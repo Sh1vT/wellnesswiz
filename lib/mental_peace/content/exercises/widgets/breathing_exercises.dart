@@ -97,7 +97,7 @@ class BreathingExercises extends StatelessWidget {
                 color: Colors.grey.shade700),
           ),
         ),
-        Container(
+        SizedBox(
           // margin: EdgeInsets.only(left: 20),
           height: 100,
           child: ListView.builder(

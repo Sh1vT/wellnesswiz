@@ -16,8 +16,8 @@ class MedicineCard extends StatelessWidget {
     this.onDelete,
     this.onCheck,
     this.isTaken = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   static const Map<String, List<String>> timeOfDayRanges = {
     'Morning': ['05:00', '11:59'],

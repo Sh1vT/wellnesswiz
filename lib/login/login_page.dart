@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:wellwiz/globalScaffold/global_scaffold.dart';
 import 'package:wellwiz/login/sign_in_button.dart';
 import 'package:wellwiz/secrets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -84,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       await GoogleSignIn.instance.disconnect();
       final googleUser = await GoogleSignIn.instance.authenticate();
-      print('[DEBUG] Google user: ' + (googleUser.toString()));
+      print('[DEBUG] Google user: $googleUser');
       final idToken = googleUser.authentication.idToken;
       final accessToken = (await googleUser.authorizationClient.authorizationForScopes(['email']))?.accessToken;
       print('[DEBUG] idToken: $idToken, accessToken: $accessToken');
@@ -101,9 +100,9 @@ class _LoginScreenState extends State<LoginScreen> {
         accessToken: accessToken,
       );
       final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      print('[DEBUG] Firebase userCredential: ' + userCredential.toString());
+      print('[DEBUG] Firebase userCredential: $userCredential');
       print('[DEBUG] Signed in as:  {userCredential.user?.displayName}');
-      print('[DEBUG] FirebaseAuth.currentUser: ' + FirebaseAuth.instance.currentUser.toString());
+      print('[DEBUG] FirebaseAuth.currentUser: ${FirebaseAuth.instance.currentUser}');
       String? userId = userCredential.user?.uid;
       // Check if user exists in Firestore and onboarding is complete
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
@@ -416,7 +415,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   switchOutCurve: Curves.easeOut,
                   transitionBuilder: (child, animation) => FadeTransition(opacity: animation, child: child),
                   child: isSignUp
-                      ? Container(
+                      ? SizedBox(
                           key: const ValueKey('signup'),
                           height: 420,
                           child: Stack(
@@ -513,7 +512,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   return Transform.translate(
                                                     offset: const Offset(0, -10), // Move up for superscript effect
                                                     child: Text(
-                                                      '${remaining} more',
+                                                      '$remaining more',
                                                       style: const TextStyle(
                                                         fontSize: 12,
                                                         color: Colors.redAccent,
@@ -635,8 +634,7 @@ class _GenderIconButton extends StatelessWidget {
     required this.icon,
     required this.selected,
     required this.onTap,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

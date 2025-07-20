@@ -10,14 +10,14 @@ class ReportTypeSelector extends StatelessWidget {
   final TextEditingController? controller;
 
   const ReportTypeSelector({
-    Key? key,
+    super.key,
     required this.reportTypes,
     required this.selectedType,
     required this.onSelected,
     required this.customType,
     required this.onCustomChanged,
     this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

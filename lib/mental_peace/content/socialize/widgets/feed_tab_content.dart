@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/post_tile.dart';
 import '../models/post_model.dart';
 import 'create_post_widget.dart';
 
 class FeedTabContent extends StatelessWidget {
-  const FeedTabContent({Key? key}) : super(key: key);
+  const FeedTabContent({super.key});
 
   @override
   Widget build(BuildContext context) {

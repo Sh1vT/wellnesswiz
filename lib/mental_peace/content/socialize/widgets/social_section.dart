@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/chatrooms_tab_content.dart';
-import 'package:wellwiz/mental_peace/content/socialize/widgets/comment_sheet.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/feed_tab_content.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/search_tab_content.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 import '../models/chatroom_model.dart';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'achievement_card.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:wellwiz/mental_peace/content/socialize/widgets/user_search_section.dart';
-import 'package:wellwiz/mental_peace/content/socialize/widgets/create_post_widget.dart';
-import 'package:wellwiz/mental_peace/content/socialize/widgets/feed_widget.dart';
-import '../models/post_model.dart';
 
 class SocialSection extends StatefulWidget {
   const SocialSection({super.key});
@@ -37,7 +29,7 @@ class _SocialSectionState extends State<SocialSection> {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
     final snapshot = await FirebaseFirestore.instance.collection('chatrooms').get();
     final allRooms = snapshot.docs.map((doc) {
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       return ChatroomModel.fromFirestore(data, doc.id);
     }).toList();
     setState(() {
@@ -249,7 +241,7 @@ class _SocialSectionState extends State<SocialSection> {
 
 class AutoScrollingAchievementsBanner extends StatefulWidget {
   final List<Widget> cards;
-  const AutoScrollingAchievementsBanner({required this.cards, Key? key}) : super(key: key);
+  const AutoScrollingAchievementsBanner({required this.cards, super.key});
 
   @override
   State<AutoScrollingAchievementsBanner> createState() => _AutoScrollingAchievementsBannerState();

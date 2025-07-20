@@ -25,7 +25,7 @@ class _AddPrescriptionDialogState extends State<AddPrescriptionDialog> {
       initialTime: TimeOfDay.now(),
     );
     if (picked != null) {
-      final formatted = picked.hour.toString().padLeft(2, '0') + ':' + picked.minute.toString().padLeft(2, '0');
+      final formatted = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       if (!times.contains(formatted)) {
         setState(() {
           times.add(formatted);

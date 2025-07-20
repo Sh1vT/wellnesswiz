@@ -1,20 +1,13 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:markdown/markdown.dart' as md;
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:wellwiz/secrets.dart';
 import 'package:wellwiz/utils/message_tile.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String roomId;
-  ChatRoomScreen({super.key, required this.roomId});
+  const ChatRoomScreen({super.key, required this.roomId});
 
   @override
   State<ChatRoomScreen> createState() => _ChatRoomScreenState();

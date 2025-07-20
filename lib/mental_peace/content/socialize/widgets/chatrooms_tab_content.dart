@@ -4,8 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_chip.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/joined_chatroom_tile.dart';
 import '../models/chatroom_model.dart';
-import 'chatroom_screen.dart';
-import 'dart:math';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -125,7 +123,7 @@ class _ShimmerChatroomCardState extends State<_ShimmerChatroomCard> with SingleT
 }
 
 class ChatroomsTabContent extends StatelessWidget {
-  const ChatroomsTabContent({Key? key}) : super(key: key);
+  const ChatroomsTabContent({super.key});
 
   static Future<List<ChatroomModel>> getUserActiveChatrooms(List<ChatroomModel> joinedChatrooms, String userId) async {
     List<ChatroomModel> result = [];

@@ -3,11 +3,10 @@ import 'package:wellwiz/utils/color_palette.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geolocator/geolocator.dart' as GeolocatorPlatform;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:wellwiz/main.dart';
 
 class AppTourScreen extends StatefulWidget {
   final Future<void> Function() onFinish;
-  const AppTourScreen({Key? key, required this.onFinish}) : super(key: key);
+  const AppTourScreen({super.key, required this.onFinish});
 
   @override
   State<AppTourScreen> createState() => _AppTourScreenState();
@@ -34,7 +33,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
   bool _contactsGranted = false;
   bool _requestingSmsContacts = false;
   String? _smsContactsError;
-  bool _finalStep = false;
+  final bool _finalStep = false;
 
   @override
   void initState() {

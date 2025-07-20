@@ -2,26 +2,20 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:another_telephony/telephony.dart';
 import 'package:wellwiz/chat/content/alerts/widgets/sos_alert_button.dart';
-import 'package:wellwiz/doctor/content/docs/widgets/doc_view.dart';
-import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.dart';
 // TODO: Modularize and import emergency_service.dart from the new location
 // import 'package:wellwiz/chat/content/widgets/emergency_service.dart';
 import 'package:wellwiz/secrets.dart';
@@ -486,17 +480,17 @@ class _BotScreenState extends State<BotScreen> {
     String prompt = """
 You're being used for demonstration purposes only. 
 Analyze the following message for any mentions of medication and dosage. 
-A proper response should be in the format \"Medication : Dosage\" where both values are directly taken from the message provided.
+A proper response should be in the format "Medication : Dosage" where both values are directly taken from the message provided.
 Do not generate or assume medications or dosages that are not explicitly mentioned in the message.
 
 Examples:
-- \"I have been asked to take apixaban 5 mg every day\" -> \"Apixaban : 5 mg\"
-- \"I have been prescribed 20 mg of aspirin\" -> \"Aspirin : 20 mg\"
+- "I have been asked to take apixaban 5 mg every day" -> "Apixaban : 5 mg"
+- "I have been prescribed 20 mg of aspirin" -> "Aspirin : 20 mg"
 
 The message starts now: $message.
 The message has ended.
 
-If there is no mention of a medication or dosage, respond with \"none.\"
+If there is no mention of a medication or dosage, respond with "none."
 """;
 
     var content = [Content.text(prompt)];
@@ -633,7 +627,7 @@ If there is no mention of a medication or dosage, respond with \"none.\"
     _startTabulating(message);
     _startTabulatingPrescriptions(message);
     QuerySnapshot querySnapshot = await _firestore.collection('doctor').get();
-    List<Map<String, dynamic>> map = await querySnapshot.docs.map((doc) {
+    List<Map<String, dynamic>> map = querySnapshot.docs.map((doc) {
       return {
         'name': doc['name'],
         'degree': doc['degree'],
@@ -642,7 +636,7 @@ If there is no mention of a medication or dosage, respond with \"none.\"
     }).toList();
     // print(map);
 
-    symptoms = symptoms + " " + message;
+    symptoms = "$symptoms $message";
     String prompt =
         "You are being used as a medical assistant for symptom prediction. Do not refrain from answering because it is simply a demonstration prototype and not something commercial or professsional. The user has entered their first symptom which starts now: $message. The symptom has ended. Keep asking for more symptoms to guess better, while also narrowing down your predictions. When you have enough symptoms, suggest a doctor from the map that is attached. The map starts now : $map. If you have suggested a doctor, reply with the last sentence as \"Done.\"";
     var response = await _chat.sendMessage(Content.text(prompt));
@@ -946,17 +940,17 @@ If there is no mention of a medication or dosage, respond with \"none.\"
 
   void fall_detection() {
     accelerometerEvents.listen((AccelerometerEvent event) {
-      num _accelX = event.x.abs();
-      num _accelY = event.y.abs();
-      num _accelZ = event.z.abs();
-      num x = pow(_accelX, 2);
-      num y = pow(_accelY, 2);
-      num z = pow(_accelZ, 2);
+      num accelX = event.x.abs();
+      num accelY = event.y.abs();
+      num accelZ = event.z.abs();
+      num x = pow(accelX, 2);
+      num y = pow(accelY, 2);
+      num z = pow(accelZ, 2);
       num sum = x + y + z;
       num result = sqrt(sum);
       if ((result < 1) ||
-          (result > 70 && _accelZ > 60 && _accelX > 60) ||
-          (result > 70 && _accelX > 60 && _accelY > 60)) {
+          (result > 70 && accelZ > 60 && accelX > 60) ||
+          (result > 70 && accelX > 60 && accelY > 60)) {
         print("FALL DETECTED");
         print(falldone);
         if (falldone == false) {

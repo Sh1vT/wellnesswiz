@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:wellwiz/chat/content/alerts/widgets/emergency_service.dart';
-import 'package:wellwiz/doctor/content/docs/widgets/app_page.dart';
-import 'package:wellwiz/login/login_page.dart';
 import 'package:wellwiz/quick_access/content/account/widgets/account_info_card.dart';
 import 'package:wellwiz/quick_access/content/account/widgets/quick_access_title.dart';
-import 'package:wellwiz/quick_access/content/bookings/widgets/my_bookings_button.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/reminder_page.dart';
-import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
-import 'package:wellwiz/quick_access/content/logout/widgets/log_out_button.dart';
-import 'package:wellwiz/quick_access/content/positivity/widgets/daily_positivity_button.dart';
-import 'package:wellwiz/quick_access/content/sos/widgets/sos_contacts_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:sensors_plus/sensors_plus.dart';
-import 'dart:math';
 import 'package:wellwiz/quick_access/content/account/widgets/gyro_reactive_card.dart';
 import 'package:wellwiz/quick_access/content/account/edit_account_info.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -272,13 +263,13 @@ class _QuickAccessPageState extends ConsumerState<QuickAccessPage> {
     if (selectedTime != null) {
       final int hour = selectedTime.hour;
       final int minute = selectedTime.minute;
-      print('[DEBUG] Picked time for positivity: ' + hour.toString() + ':' + minute.toString());
+      print('[DEBUG] Picked time for positivity: $hour:$minute');
       // final ThoughtsService _thoughtsService = ThoughtsService(); // Removed
       // await _thoughtsService.scheduleDailyThoughtNotification(hour, minute); // Removed
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              "Daily positive thought scheduled for "+selectedTime.format(context)+"!"),
+              "Daily positive thought scheduled for ${selectedTime.format(context)}!"),
         ),
       );
     }
@@ -522,7 +513,7 @@ class _AnimatedScaleOnTapState extends State<_AnimatedScaleOnTap> with SingleTic
 
 // Shimmer skeleton for AccountInfoCard
 class AccountInfoCardShimmer extends StatelessWidget {
-  const AccountInfoCardShimmer({Key? key}) : super(key: key);
+  const AccountInfoCardShimmer({super.key});
 
   @override
   Widget build(BuildContext context) {

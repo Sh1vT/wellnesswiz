@@ -6,7 +6,7 @@ import 'comment_sheet.dart';
 
 class PostTile extends StatelessWidget {
   final PostModel post;
-  const PostTile({required this.post, Key? key}) : super(key: key);
+  const PostTile({required this.post, super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -10,11 +10,11 @@ class ReportHistoryDialog extends StatefulWidget {
   final List<ScanEntry> scans;
   final VoidCallback onHistoryChanged;
   const ReportHistoryDialog({
-    Key? key,
+    super.key,
     required this.reportTypeKey,
     required this.scans,
     required this.onHistoryChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<ReportHistoryDialog> createState() => _ReportHistoryDialogState();

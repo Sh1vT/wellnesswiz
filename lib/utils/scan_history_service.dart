@@ -10,7 +10,7 @@ Future<void> saveScan(
   String? reportType,
 ) async {
   final pref = await SharedPreferences.getInstance();
-  String key = (reportType ?? 'Unknown').trim().isEmpty ? 'custom_report' : reportType!.toLowerCase().replaceAll(' ', '_') + '_report';
+  String key = (reportType ?? 'Unknown').trim().isEmpty ? 'custom_report' : '${reportType!.toLowerCase().replaceAll(' ', '_')}_report';
   String? groupedJson = pref.getString('scan_grouped_history');
   Map<String, List<ScanEntry>> groupedHistory = {};
   if (groupedJson != null && groupedJson.isNotEmpty) {

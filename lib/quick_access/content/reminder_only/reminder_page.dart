@@ -1,4 +1,3 @@
-import 'package:dotted_border/dotted_border.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -7,18 +6,13 @@ import 'package:wellwiz/quick_access/content/reminder_only/reminder_model.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
 import 'reminder_logic.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:android_intent_plus/flag.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/workmanager_notification_fallback.dart' as workmanager_fallback;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 
 class ReminderPage extends StatefulWidget {
   final String userId;
 
-  const ReminderPage({Key? key, required this.userId}) : super(key: key);
+  const ReminderPage({super.key, required this.userId});
 
   @override
   _ReminderPageState createState() => _ReminderPageState();
@@ -366,7 +360,7 @@ class _ReminderCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${DateFormat.yMMMd().add_jm().format(reminder.scheduledTime)}',
+                    DateFormat.yMMMd().add_jm().format(reminder.scheduledTime),
                     style: const TextStyle(
                       fontFamily: 'Mulish',
                       fontSize: 12,

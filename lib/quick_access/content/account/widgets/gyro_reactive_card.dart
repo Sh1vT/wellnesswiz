@@ -5,7 +5,7 @@ import 'dart:math';
 
 class GyroReactiveCard extends StatefulWidget {
   final Widget child;
-  const GyroReactiveCard({required this.child, Key? key}) : super(key: key);
+  const GyroReactiveCard({required this.child, super.key});
 
   @override
   State<GyroReactiveCard> createState() => _GyroReactiveCardState();

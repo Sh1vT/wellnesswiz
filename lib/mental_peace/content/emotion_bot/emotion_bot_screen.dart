@@ -4,10 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.dart';
 import 'package:wellwiz/secrets.dart';
 import 'package:wellwiz/utils/message_tile.dart';
 import 'package:wellwiz/utils/color_palette.dart';
@@ -21,7 +19,7 @@ class MoodSegment {
 }
 
 class EmotionBotScreen extends StatefulWidget {
-  EmotionBotScreen({super.key});
+  const EmotionBotScreen({super.key});
   // Removed emotion parameter
   @override
   State<EmotionBotScreen> createState() => _EmotionBotScreenState();
@@ -178,11 +176,11 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
   }
 
   void _endSessionAndStoreTime() async {
-    DateTime _endTime = DateTime.now();
+    DateTime endTime = DateTime.now();
     if (moodSegments.isNotEmpty) {
-      moodSegments.last.endTime = _endTime;
+      moodSegments.last.endTime = endTime;
     }
-    String currentDate = DateFormat('yyyy-MM-dd').format(_endTime);
+    String currentDate = DateFormat('yyyy-MM-dd').format(endTime);
 
     // Load the full emotion monitor data map
     final prefs = await SharedPreferences.getInstance();

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wellwiz/utils/color_palette.dart';
-import 'package:wellwiz/utils/metrics_utils.dart';
 import 'report_type_selector.dart';
 
 final selectedTypeChipBG = ColorPalette.greenSwatch[100];
@@ -13,12 +12,12 @@ class ExtractedMetricsDialog extends StatefulWidget {
   final void Function(List<List<dynamic>> metrics, String selectedType) onSave;
 
   const ExtractedMetricsDialog({
-    Key? key,
+    super.key,
     required this.extractedMetrics,
     required this.reportTypes,
     required this.detectedType,
     required this.onSave,
-  }) : super(key: key);
+  });
 
   @override
   State<ExtractedMetricsDialog> createState() => _ExtractedMetricsDialogState();
@@ -83,7 +82,7 @@ class _ExtractedMetricsDialogState extends State<ExtractedMetricsDialog> {
     );
     if (result != null && double.tryParse(result) != null) {
       setState(() {
-        metric[1] = unit.isNotEmpty ? '${result} $unit' : result;
+        metric[1] = unit.isNotEmpty ? '$result $unit' : result;
       });
     }
   }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:wellwiz/utils/hospital_utils.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:shimmer/shimmer.dart';
 import 'hospital_card.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 import 'package:wellwiz/utils/hospital_rating_service.dart';
@@ -13,11 +11,11 @@ class NearbyHospitalsSection extends StatefulWidget {
   final List<Hospital> within1km;
 
   const NearbyHospitalsSection({
-    Key? key,
+    super.key,
     this.within20km = const [],
     this.within5km = const [],
     this.within1km = const [],
-  }) : super(key: key);
+  });
 
   @override
   State<NearbyHospitalsSection> createState() => _NearbyHospitalsSectionState();

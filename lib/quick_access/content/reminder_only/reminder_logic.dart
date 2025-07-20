@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class ReminderLogic {
-  static String _reminderKey(String userId) => 'reminders_' + userId;
+  static String _reminderKey(String userId) => 'reminders_$userId';
 
   Future<List<Reminder>> fetchReminders(String userId) async {
     final prefs = await SharedPreferences.getInstance();

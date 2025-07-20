@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wellwiz/providers/user_info_provider.dart';
 import 'package:wellwiz/utils/color_palette.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,18 +14,37 @@ class AccountInfoCard extends StatelessWidget {
   final int? following;
   final List<Map<String, dynamic>>? flairs;
   final WidgetRef ref;
-  const AccountInfoCard({Key? key, this.name, this.handle, this.photoURL, this.age, this.followers, this.following, this.flairs, required this.ref}) : super(key: key);
+  const AccountInfoCard({
+    super.key,
+    this.name,
+    this.handle,
+    this.photoURL,
+    this.age,
+    this.followers,
+    this.following,
+    this.flairs,
+    required this.ref,
+  });
 
   Color? _parseFlairColor(dynamic colorField) {
-    if (colorField is String && colorField.startsWith('#') && (colorField.length == 7 || colorField.length == 9)) {
+    if (colorField is String &&
+        colorField.startsWith('#') &&
+        (colorField.length == 7 || colorField.length == 9)) {
       try {
-        return Color(int.parse(colorField.substring(1), radix: 16) + (colorField.length == 7 ? 0xFF000000 : 0));
+        return Color(
+          int.parse(colorField.substring(1), radix: 16) +
+              (colorField.length == 7 ? 0xFF000000 : 0),
+        );
       } catch (_) {}
     }
     return null;
   }
 
-  void _showUserListSheet(BuildContext context, String type, String title) async {
+  void _showUserListSheet(
+    BuildContext context,
+    String type,
+    String title,
+  ) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final snapshot = await FirebaseFirestore.instance
@@ -72,7 +90,14 @@ class AccountInfoCard extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Text(title, style: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold, fontSize: 20)),
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontFamily: 'Mulish',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
                   ),
                   if (localUsers.isEmpty)
                     Padding(
@@ -80,7 +105,10 @@ class AccountInfoCard extends StatelessWidget {
                       child: SizedBox(
                         width: double.infinity,
                         child: const Center(
-                          child: Text('No users found', style: TextStyle(fontFamily: 'Mulish')),
+                          child: Text(
+                            'No users found',
+                            style: TextStyle(fontFamily: 'Mulish'),
+                          ),
                         ),
                       ),
                     )
@@ -94,21 +122,45 @@ class AccountInfoCard extends StatelessWidget {
                           final userData = localUsers[i];
                           return ListTile(
                             leading: userData['photoURL'].isNotEmpty
-                                ? CircleAvatar(backgroundImage: NetworkImage(userData['photoURL']))
-                                : const CircleAvatar(child: Icon(Icons.account_circle)),
-                            title: Text(userData['name'], style: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
-                            subtitle: Text('@${userData['handle']}', style: TextStyle(fontFamily: 'Mulish', color: Colors.grey.shade700)),
+                                ? CircleAvatar(
+                                    backgroundImage: NetworkImage(
+                                      userData['photoURL'],
+                                    ),
+                                  )
+                                : const CircleAvatar(
+                                    child: Icon(Icons.account_circle),
+                                  ),
+                            title: Text(
+                              userData['name'],
+                              style: const TextStyle(
+                                fontFamily: 'Mulish',
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            subtitle: Text(
+                              '@${userData['handle']}',
+                              style: TextStyle(
+                                fontFamily: 'Mulish',
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
                             trailing: IconButton(
                               icon: const Icon(Icons.close, color: Colors.red),
-                              tooltip: type == 'followers' ? 'Remove follower' : 'Unfollow',
+                              tooltip: type == 'followers'
+                                  ? 'Remove follower'
+                                  : 'Unfollow',
                               onPressed: () async {
                                 final confirmed = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     backgroundColor: Colors.grey.shade50,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18),
+                                    ),
                                     title: Text(
-                                      type == 'followers' ? 'Remove Follower?' : 'Unfollow User?',
+                                      type == 'followers'
+                                          ? 'Remove Follower?'
+                                          : 'Unfollow User?',
                                       style: TextStyle(
                                         fontSize: 20,
                                         color: Colors.grey.shade700,
@@ -120,27 +172,52 @@ class AccountInfoCard extends StatelessWidget {
                                       type == 'followers'
                                           ? "Are you sure you want to remove ${userData['name']} (@${userData['handle']}) from your followers?"
                                           : "Are you sure you want to unfollow ${userData['name']} (@${userData['handle']})?",
-                                      style: const TextStyle(fontFamily: 'Mulish'),
+                                      style: const TextStyle(
+                                        fontFamily: 'Mulish',
+                                      ),
                                     ),
                                     actions: [
                                       TextButton(
-                                        onPressed: () => Navigator.of(context).pop(false),
-                                        child: const Text('Cancel', style: TextStyle(fontFamily: 'Mulish')),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: const Text(
+                                          'Cancel',
+                                          style: TextStyle(
+                                            fontFamily: 'Mulish',
+                                          ),
+                                        ),
                                       ),
                                       ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                           elevation: 0,
-                                          backgroundColor: Color.fromARGB(255, 106, 172, 67),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          backgroundColor: Color.fromARGB(
+                                            255,
+                                            106,
+                                            172,
+                                            67,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
                                         ),
-                                        onPressed: () => Navigator.of(context).pop(true),
-                                        child: const Text('Remove', style: TextStyle(color: Colors.white, fontFamily: 'Mulish')),
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: const Text(
+                                          'Remove',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Mulish',
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
                                 );
                                 if (confirmed == true) {
-                                  final currentUser = FirebaseAuth.instance.currentUser;
+                                  final currentUser =
+                                      FirebaseAuth.instance.currentUser;
                                   if (currentUser == null) return;
                                   if (type == 'followers') {
                                     await FirebaseFirestore.instance
@@ -172,7 +249,9 @@ class AccountInfoCard extends StatelessWidget {
                                   setModalState(() {
                                     localUsers.removeAt(i);
                                   });
-                                  ref.read(userInfoProvider.notifier).loadUserInfo();
+                                  ref
+                                      .read(userInfoProvider.notifier)
+                                      .loadUserInfo();
                                 }
                               },
                             ),
@@ -194,9 +273,7 @@ class AccountInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 12,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       margin: EdgeInsets.zero,
       child: Container(
         height: MediaQuery.of(context).size.height * 0.26,
@@ -238,11 +315,17 @@ class AccountInfoCard extends StatelessWidget {
                               ),
                               child: CircleAvatar(
                                 radius: 28,
-                                backgroundImage: photoURL != null ? NetworkImage(photoURL!) : null,
-                                child: photoURL == null
-                                    ? const Icon(Icons.account_circle, size: 38, color: Colors.grey)
+                                backgroundImage: photoURL != null
+                                    ? NetworkImage(photoURL!)
                                     : null,
                                 backgroundColor: Colors.white,
+                                child: photoURL == null
+                                    ? const Icon(
+                                        Icons.account_circle,
+                                        size: 38,
+                                        color: Colors.grey,
+                                      )
+                                    : null,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -265,11 +348,20 @@ class AccountInfoCard extends StatelessWidget {
                                     children: [
                                       if (handle != null)
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          margin: const EdgeInsets.only(right: 6),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          margin: const EdgeInsets.only(
+                                            right: 6,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.32),
-                                            borderRadius: BorderRadius.circular(14),
+                                            color: Colors.white.withOpacity(
+                                              0.32,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
                                           ),
                                           child: Text(
                                             '@$handle',
@@ -283,10 +375,17 @@ class AccountInfoCard extends StatelessWidget {
                                         ),
                                       if (age != null)
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.32),
-                                            borderRadius: BorderRadius.circular(14),
+                                            color: Colors.white.withOpacity(
+                                              0.32,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
                                           ),
                                           child: Text(
                                             '$age',
@@ -313,19 +412,46 @@ class AccountInfoCard extends StatelessWidget {
                             children: [
                               if (followers != null)
                                 TextButton(
-                                  onPressed: () => _showUserListSheet(context, 'followers', 'Followers'),
+                                  onPressed: () => _showUserListSheet(
+                                    context,
+                                    'followers',
+                                    'Followers',
+                                  ),
                                   style: TextButton.styleFrom(
-                                    backgroundColor: ColorPalette.green.withOpacity(0.13),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    backgroundColor: ColorPalette.green
+                                        .withOpacity(0.13),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text('$followers', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish', fontSize: 13, color: ColorPalette.green)),
+                                      Text(
+                                        '$followers',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Mulish',
+                                          fontSize: 13,
+                                          color: ColorPalette.green,
+                                        ),
+                                      ),
                                       SizedBox(width: 6),
-                                      Text('Followers', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold, fontSize: 11, color: ColorPalette.green)),
+                                      Text(
+                                        'Followers',
+                                        style: TextStyle(
+                                          fontFamily: 'Mulish',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                          color: ColorPalette.green,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -333,19 +459,46 @@ class AccountInfoCard extends StatelessWidget {
                                 SizedBox(height: 6),
                               if (following != null)
                                 TextButton(
-                                  onPressed: () => _showUserListSheet(context, 'following', 'Following'),
+                                  onPressed: () => _showUserListSheet(
+                                    context,
+                                    'following',
+                                    'Following',
+                                  ),
                                   style: TextButton.styleFrom(
-                                    backgroundColor: ColorPalette.green.withOpacity(0.13),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    backgroundColor: ColorPalette.green
+                                        .withOpacity(0.13),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text('$following', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish', fontSize: 13, color: ColorPalette.green)),
+                                      Text(
+                                        '$following',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Mulish',
+                                          fontSize: 13,
+                                          color: ColorPalette.green,
+                                        ),
+                                      ),
                                       SizedBox(width: 6),
-                                      Text('Following', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold, fontSize: 11, color: ColorPalette.green)),
+                                      Text(
+                                        'Following',
+                                        style: TextStyle(
+                                          fontFamily: 'Mulish',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                          color: ColorPalette.green,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -367,8 +520,14 @@ class AccountInfoCard extends StatelessWidget {
                   children: [
                     for (int i = 0; i < flairs!.length; i++) ...[
                       _FlagBadge(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         text: flairs![i]['label'] ?? 'Flair',
-                        color: _parseFlairColor(flairs![i]['color']) ?? Colors.deepPurpleAccent,
+                        color:
+                            _parseFlairColor(flairs![i]['color']) ??
+                            Colors.deepPurpleAccent,
                         height: 24,
                       ),
                     ],
@@ -405,9 +564,8 @@ class _FlagBadge extends StatelessWidget {
     required this.text,
     required this.color,
     this.height = 24,
-    this.padding = const EdgeInsets.fromLTRB(22, 4, 16, 4), // More left padding for visual centering
-    Key? key,
-  }) : super(key: key);
+    required this.padding,
+  });
 
   @override
   Widget build(BuildContext context) {

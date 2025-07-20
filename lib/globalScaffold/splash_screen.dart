@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();

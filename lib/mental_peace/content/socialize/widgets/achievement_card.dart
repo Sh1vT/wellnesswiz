@@ -12,7 +12,7 @@ class AchievementCard extends StatelessWidget {
   final String currentUserId;
   final double? width;
   final double? height;
-  const AchievementCard({
+  const AchievementCard({super.key, 
     required this.imageUrl,
     required this.title,
     required this.caption,
