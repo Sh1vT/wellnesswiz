@@ -172,7 +172,15 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
           content: Text('Great job! You have completed the exercise.'),
           actions: [
             TextButton(
-              child: Text('OK'),
+              style: TextButton.styleFrom(
+                backgroundColor: ColorPalette.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              ),
+              child: Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop();
@@ -249,10 +257,9 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                     opacity: _timerOpacity,
                     duration: const Duration(milliseconds: 200),
                     child: Container(
-                      width: 60,
                       height: 40,
                       alignment: Alignment.centerLeft,
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.only(left: 8, right: 8, top: 8, bottom: 8),
                       decoration: BoxDecoration(
                         color: Color.fromRGBO(106, 172, 67, 0.1),
                         borderRadius: BorderRadius.circular(20),
@@ -269,7 +276,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                             color: Color.fromRGBO(106, 172, 67, 1),
                             size: 16,
                           ),
-                          SizedBox(width: 6),
+                          SizedBox(width: 4),
                           Text(
                             '${(_exerciseSteps.isNotEmpty && _currentPhaseIndex < _exerciseSteps.length) ? ((_exerciseSteps[_currentPhaseIndex]['duration'] as int) - _instructionElapsedTime) : ''}',
                             style: TextStyle(
@@ -381,7 +388,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                           children: [
                             Icon(
                               _isPaused ? Icons.play_circle_fill : Icons.pause_circle_filled,
-                              color: _isPaused ? Colors.green : Colors.amber,
+                              color: _isPaused ? ColorPalette.green : Colors.amber,
                               size: 22,
                             ),
                             SizedBox(width: 8),
