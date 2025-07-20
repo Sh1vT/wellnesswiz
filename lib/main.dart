@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:wellwiz/globalScaffold/global_scaffold.dart';
 import 'package:wellwiz/login/login_page.dart';
+import 'package:wellwiz/providers/user_info_provider.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/workmanager_notification_fallback.dart' show callbackDispatcher;
 import 'package:wellwiz/utils/achievement_uploader.dart';
 import 'package:wellwiz/utils/chatroom_uploader.dart';
@@ -21,7 +22,6 @@ import 'package:wellwiz/onboarding/app_tour_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wellwiz/globalScaffold/splash_screen.dart';
 import 'package:wellwiz/utils/app_initializer.dart';
-import 'package:wellwiz/utils/user_info_cache.dart';
 import 'package:flutter/services.dart';
 
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -79,14 +79,14 @@ void clearOldHealthData() async {
   Fluttertoast.showToast(msg: "Old health/profile data cleared.");
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  ConsumerState<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends ConsumerState<MyApp> {
   User? _user;
   bool _isLoading = true;
   bool _onboardingComplete = false;
@@ -116,7 +116,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _checkAuthAndOnboarding() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      print('DEBUG: Current user: ${user?.uid}');
+      print('DEBUG: Current user:  [38;5;10m [1m [4m [3m [9m${user?.uid} [0m');
       
       if (user != null) {
         // User is logged in - check if onboarding is complete in SharedPreferences
@@ -130,6 +130,8 @@ class _MyAppState extends State<MyApp> {
           _user = user;
           _onboardingComplete = true;
           await initializeAppStartup();
+          // Await user info loading here!
+          await ref.read(userInfoProvider.notifier).loadUserInfo();
         } else {
           // User logged in but onboarding not complete - show onboarding
           print('DEBUG: Onboarding not complete, showing onboarding');
@@ -142,8 +144,7 @@ class _MyAppState extends State<MyApp> {
         _user = null;
         _onboardingComplete = false;
       }
-      
-      await UserInfoCache.getUserInfo();
+      // REMOVE: await UserInfoCache.getUserInfo();
     } catch (e) {
       print('DEBUG: Error in _checkAuthAndOnboarding: $e');
       // If any error, default to login flow

@@ -54,19 +54,14 @@ class _GlobalScaffoldState extends ConsumerState<GlobalScaffold> {
   @override
   Widget build(BuildContext context) {
     final selectedIndex = ref.watch(pageNavigationProvider);
+    // Use Riverpod everywhere for user info. No UserInfoCache needed.
+    // The chat page and quick access page now use the provider directly.
     final List<Widget> _pages = [
-      ChatPage(
-        uname: username.trim().substring(
-          0,
-          username.trim().indexOf(' ') == -1
-              ? username.length
-              : username.indexOf(' ')),
-      ),
+      const ChatPage(),
       const MentalPeacePage(),
       DoctorPage(),
       QuickAccessPage()
     ];
-
     return Scaffold(
       appBar:
           PreferredSize(preferredSize: Size.fromHeight(20), child: Container()),
@@ -78,7 +73,7 @@ class _GlobalScaffoldState extends ConsumerState<GlobalScaffold> {
           },
           children: _pages),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32), // Increased bottom padding for more space
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 32),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,

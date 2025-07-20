@@ -3,7 +3,6 @@ import 'package:wellwiz/doctor/doctor_page.dart';
 import 'package:wellwiz/utils/hospital_utils.dart';
 import 'package:wellwiz/utils/hospital_key.dart';
 import 'package:wellwiz/utils/hospital_rating_service.dart';
-import 'package:wellwiz/utils/user_info_cache.dart';
 import 'package:wellwiz/utils/thought_service.dart';
 import 'package:wellwiz/utils/exercise_music_service.dart';
 

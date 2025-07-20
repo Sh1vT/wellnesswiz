@@ -76,6 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signInWithGoogle(BuildContext context) async {
+    print('[DEBUG] Google sign-in started');
     setState(() { _isSigningIn = true; });
     try {
       await GoogleSignIn.instance.initialize(
@@ -83,10 +84,15 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       await GoogleSignIn.instance.disconnect();
       final googleUser = await GoogleSignIn.instance.authenticate();
+      print('[DEBUG] Google user: ' + (googleUser.toString()));
       final idToken = googleUser.authentication.idToken;
       final accessToken = (await googleUser.authorizationClient.authorizationForScopes(['email']))?.accessToken;
+      print('[DEBUG] idToken: $idToken, accessToken: $accessToken');
       if (idToken == null || accessToken == null) {
-        print("Missing tokens.");
+        print('[DEBUG] Missing tokens.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google sign-in failed: Missing tokens.')),
+        );
         setState(() { _isSigningIn = false; });
         return;
       }
@@ -95,13 +101,16 @@ class _LoginScreenState extends State<LoginScreen> {
         accessToken: accessToken,
       );
       final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      print("Signed in as:  {userCredential.user?.displayName}");
+      print('[DEBUG] Firebase userCredential: ' + userCredential.toString());
+      print('[DEBUG] Signed in as:  {userCredential.user?.displayName}');
+      print('[DEBUG] FirebaseAuth.currentUser: ' + FirebaseAuth.instance.currentUser.toString());
       String? userId = userCredential.user?.uid;
       // Check if user exists in Firestore and onboarding is complete
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      print('[DEBUG] Firestore userDoc.exists: ${userDoc.exists}, data: ${userDoc.data()}');
       // Prevent duplicate sign up: If in sign up mode and user exists, show error and do not proceed
       if (isSignUp && userDoc.exists && (userDoc.data()?['onboardingCompleted'] == true)) {
-        // Sign out the just-signed-in user to avoid session confusion
+        print('[DEBUG] Duplicate sign up detected.');
         await FirebaseAuth.instance.signOut();
         await GoogleSignIn.instance.signOut();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -111,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
       if (userDoc.exists && (userDoc.data()?['onboardingCompleted'] == true)) {
-        // Existing user, skip onboarding
+        print('[DEBUG] Existing user, onboarding complete.');
         final prefs = await SharedPreferences.getInstance();
         prefs.setString('username', userDoc.data()?['name'] ?? userCredential.user?.displayName ?? '');
         prefs.setString('userhandle', userDoc.data()?['handle'] ?? '');
@@ -124,12 +133,13 @@ class _LoginScreenState extends State<LoginScreen> {
             'fcmToken': fcmToken,
           }, SetOptions(merge: true));
         }
-        // Let main app handle navigation by rebuilding
         setState(() { _isSigningIn = false; });
+        print('[DEBUG] Sign-in flow complete, returning.');
         return;
       }
       // If new user or onboarding not complete, require onboarding fields
       if (_nameController.text.isEmpty || _ageController.text.isEmpty || gender == null) {
+        print('[DEBUG] Missing onboarding fields.');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please fill all fields.')),
         );
@@ -137,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
       if (selectedGoals.length < 3) {
+        print('[DEBUG] Not enough goals selected.');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select at least 3 goals.')),
         );
@@ -165,16 +176,25 @@ class _LoginScreenState extends State<LoginScreen> {
         'handle': userHandle,
         'onboardingCompleted': true,
       }, SetOptions(merge: true));
+      print('[DEBUG] New user onboarding fields saved to Firestore.');
       final prefs = await SharedPreferences.getInstance();
       prefs.setString('username', _nameController.text);
       prefs.setString('userhandle', userHandle);
       prefs.setString('userimg', googleUser.photoUrl ?? '');
-      // Don't set onboardingCompleted here - let main app handle it
-      // Let main app handle navigation by rebuilding
       setState(() { _isSigningIn = false; });
-    } catch (e) {
-      print("Google Sign-In failed: $e");
+      print('[DEBUG] Sign-in flow complete for new user.');
+    } catch (e, stack) {
+      print('[DEBUG] Google Sign-In failed: $e');
+      print(stack);
+      String errorMsg = e.toString();
+      if (errorMsg.contains('sign_in_canceled') || errorMsg.contains('SignInCancelledException') || errorMsg.contains('User closed') || errorMsg.contains('user_cancelled') || errorMsg.contains('user_cancelled') || errorMsg.contains('canceled')) {
+        errorMsg = 'No account selected.';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg)),
+      );
     }
+    print('[DEBUG] _signInWithGoogle finished. _isSigningIn=$_isSigningIn');
     setState(() { _isSigningIn = false; });
   }
 
@@ -588,7 +608,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SignInButton(
-                                buttontext: "Sign In",
+                                buttontext: "Log In",
                                 iconImage: const AssetImage('assets/images/googlelogo.png'),
                                 loading: _isSigningIn,
                                 onPressed: _isSigningIn ? null : () => _signInWithGoogle(context),

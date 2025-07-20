@@ -11,7 +11,7 @@ import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.d
 import 'package:wellwiz/secrets.dart';
 import 'package:wellwiz/utils/message_tile.dart';
 import 'package:wellwiz/utils/color_palette.dart';
-// import 'package:wellwiz/secrets.dart';
+import 'package:wellwiz/chat/content/bot/widgets/connecting_dialog.dart';
 
 class MoodSegment {
   String mood;
@@ -104,6 +104,8 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
       _loading = true;
       _textController.clear();
       _textFieldFocus.unfocus();
+      // Show user message immediately
+      history.add(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
     });
 
     _scrollDown();
@@ -127,7 +129,6 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         recentChatLog.clear();
       }
       setState(() {
-        history.add(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
         history.add(ChatResponse(isUser: false, text: response.text, timestamp: DateTime.now()));
         _loading = false;
       });
@@ -214,8 +215,6 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
       apiKey: _apiKey,
     );
     _chat = _model.startChat();
-    _sendChatMessage(
-        "This is the first message before user has interacted. Just give an intro message.");
     _startTime = DateTime.now();
     _initializeSharedPreferences();
   }
@@ -239,8 +238,9 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
             child: Text('Back', style: TextStyle(fontFamily: 'Mulish', color: ColorPalette.black)),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop();
+              await _showConnectingAndGeminiHello();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color.fromARGB(255, 106, 172, 67),
@@ -251,6 +251,30 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showConnectingAndGeminiHello() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const ConnectingDialog(),
+    );
+    String helloPrompt =
+        "Say hello to the user and inform them you are an AI assistant being used in a mental health context. Be friendly and brief.";
+    try {
+      var response = await _chat.sendMessage(Content.text(helloPrompt));
+      Navigator.of(context).pop(); // Close connecting dialog
+      setState(() {
+        history.add(ChatResponse(isUser: false, text: response.text, timestamp: DateTime.now()));
+      });
+      _scrollDown();
+    } catch (e) {
+      Navigator.of(context).pop();
+      setState(() {
+        history.add(ChatResponse(isUser: false, text: "Our services are busy, try again later.", timestamp: DateTime.now()));
+      });
+      _scrollDown();
+    }
   }
 
   @override
@@ -307,10 +331,10 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
           children: [
             ListView.separated(
               padding: const EdgeInsets.fromLTRB(15, 0, 15, 90),
-              itemCount: history.length > 1 ? history.length - 1 : 0,
+              itemCount: history.length,
               controller: _scrollController,
               itemBuilder: (context, index) {
-                var content = history[index + 1]; // skip the first message
+                var content = history[index];
 
                 if (content.hasButton && content.button != null) {
                   return Align(
@@ -452,7 +476,16 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
                           ),
                         ),
                         onSubmitted: (msg) {
-                          if (msg.trim().isNotEmpty) _sendChatMessage(msg.trim());
+                          if (msg.trim().isNotEmpty) {
+                            setState(() {
+                              _loading = true;
+                            });
+                            _sendChatMessage(msg.trim()).then((_) {
+                              setState(() {
+                                _loading = false;
+                              });
+                            });
+                          }
                         },
                       ),
                     ),
@@ -462,7 +495,6 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
                         final message = _textController.text.trim();
                         if (message.isNotEmpty) {
                           setState(() {
-                            history.add(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
                             _loading = true;
                           });
                           _sendChatMessage(message).then((_) {

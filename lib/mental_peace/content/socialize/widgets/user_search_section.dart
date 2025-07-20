@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../providers/user_info_provider.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 
-class UserSearchSection extends StatefulWidget {
+class UserSearchSection extends ConsumerStatefulWidget {
   const UserSearchSection({super.key});
 
   @override
-  State<UserSearchSection> createState() => _UserSearchSectionState();
+  ConsumerState<UserSearchSection> createState() => _UserSearchSectionState();
 }
 
-class _UserSearchSectionState extends State<UserSearchSection> {
+class _UserSearchSectionState extends ConsumerState<UserSearchSection> {
   final TextEditingController _searchController = TextEditingController();
   String _searchTerm = '';
 
@@ -57,7 +59,7 @@ class _UserSearchSectionState extends State<UserSearchSection> {
                     final docs = snapshot.data!.docs.where((doc) {
                       final data = doc.data() as Map<String, dynamic>;
                       final handle = (data['handle'] ?? '').toString().toLowerCase();
-                      final name = (data['displayName'] ?? '').toString().toLowerCase();
+                      final name = (data['name'] ?? '').toString().toLowerCase();
                       final term = _searchTerm.toLowerCase();
                       return handle.contains(term) || name.contains(term);
                     }).where((doc) => doc.id != currentUser?.uid).toList();
@@ -72,9 +74,10 @@ class _UserSearchSectionState extends State<UserSearchSection> {
                         final userId = docs[i].id;
                         return _UserListTile(
                           userId: userId,
-                          displayName: data['displayName'] ?? '',
+                          name: data['name'] ?? '',
                           handle: data['handle'] ?? '',
                           photoUrl: data['photoURL'] ?? '',
+                          ref: ref,
                         );
                       },
                     );
@@ -86,18 +89,19 @@ class _UserSearchSectionState extends State<UserSearchSection> {
   }
 }
 
-class _UserListTile extends StatefulWidget {
+class _UserListTile extends ConsumerStatefulWidget {
   final String userId;
-  final String displayName;
+  final String name;
   final String handle;
   final String photoUrl;
-  const _UserListTile({required this.userId, required this.displayName, required this.handle, required this.photoUrl});
+  final WidgetRef ref;
+  const _UserListTile({required this.userId, required this.name, required this.handle, required this.photoUrl, required this.ref});
 
   @override
-  State<_UserListTile> createState() => _UserListTileState();
+  ConsumerState<_UserListTile> createState() => _UserListTileState();
 }
 
-class _UserListTileState extends State<_UserListTile> {
+class _UserListTileState extends ConsumerState<_UserListTile> {
   bool _isFollowing = false;
   bool _loading = true;
 
@@ -147,6 +151,7 @@ class _UserListTileState extends State<_UserListTile> {
       _isFollowing = !_isFollowing;
       _loading = false;
     });
+    widget.ref.read(userInfoProvider.notifier).loadUserInfo();
   }
 
   @override
@@ -155,7 +160,7 @@ class _UserListTileState extends State<_UserListTile> {
       leading: widget.photoUrl.isNotEmpty
           ? CircleAvatar(backgroundImage: NetworkImage(widget.photoUrl))
           : const CircleAvatar(child: Icon(Icons.account_circle)),
-      title: Text(widget.displayName, style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
+      title: Text(widget.name, style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
       subtitle: Text('@${widget.handle}', style: TextStyle(fontFamily: 'Mulish', color: Colors.grey.shade700)),
       trailing: _loading
           ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))

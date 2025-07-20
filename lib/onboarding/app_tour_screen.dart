@@ -573,6 +573,28 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
                         child: const Text('Prev', style: TextStyle(fontFamily: 'Mulish', fontSize: 14, color: ColorPalette.green)),
                       ),
                     ),
+                  // Permission pages: show Skip button
+                  if (_currentPage >= 2 && _currentPage <= 6)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: ColorPalette.black,
+                          textStyle: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.w600),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                            side: BorderSide(color: ColorPalette.black, width: 2),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text('Skip', style: TextStyle(fontFamily: 'Mulish', fontSize: 14, color: ColorPalette.black)),
+                      ),
+                    ),
                   ElevatedButton(
                     onPressed: () => _onNextWithContext(scaffoldContext),
                     style: ElevatedButton.styleFrom(
@@ -625,19 +647,23 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
     if (!mounted) return;
     setState(() { _requestingLocation = true; _locationError = null; });
     try {
-      final GeolocatorPlatform.GeolocatorPlatform geo = GeolocatorPlatform.GeolocatorPlatform.instance;
+      final geo = GeolocatorPlatform.GeolocatorPlatform.instance;
       LocationPermission permission = await geo.checkPermission();
-      if (permission == LocationPermission.denied) {
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         permission = await geo.requestPermission();
       }
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
+        setState(() { _locationError = 'Location access permanently denied. Please enable it in settings.'; _locationGranted = false; });
+        return;
+      }
+      if (permission == LocationPermission.denied) {
         if (!mounted) return;
         setState(() { _locationError = 'Location access denied.'; _locationGranted = false; });
         return;
       }
       if (!mounted) return;
       setState(() { _locationError = null; _locationGranted = true; });
-      // Go to next page (camera permission)
       _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     } catch (e) {
       if (!mounted) return;
@@ -652,15 +678,14 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
     if (!mounted) return;
     setState(() { _requestingBluetooth = true; _bluetoothError = null; });
     try {
-      // For Android 12+ (API 31+), use bluetoothScan and bluetoothConnect
       final scanStatus = await Permission.bluetoothScan.status;
       final connectStatus = await Permission.bluetoothConnect.status;
       bool granted = true;
-      if (!scanStatus.isGranted) {
+      if (!scanStatus.isGranted || scanStatus.isDenied) {
         final result = await Permission.bluetoothScan.request();
         if (!result.isGranted) granted = false;
       }
-      if (!connectStatus.isGranted) {
+      if (!connectStatus.isGranted || connectStatus.isDenied) {
         final result = await Permission.bluetoothConnect.request();
         if (!result.isGranted) granted = false;
       }
@@ -671,7 +696,6 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
       }
       if (!mounted) return;
       setState(() { _bluetoothError = null; _bluetoothGranted = true; });
-      // Go to next page (camera permission)
       _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     } catch (e) {
       if (!mounted) return;
@@ -687,7 +711,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
     setState(() { _requestingCamera = true; _cameraError = null; });
     try {
       final status = await Permission.camera.status;
-      if (!status.isGranted) {
+      if (!status.isGranted || status.isDenied) {
         final result = await Permission.camera.request();
         if (!result.isGranted) {
           if (!mounted) return;
@@ -697,7 +721,6 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
       }
       if (!mounted) return;
       setState(() { _cameraError = null; _cameraGranted = true; });
-      // Go to next page (notification permission)
       _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     } catch (e) {
       if (!mounted) return;
@@ -713,15 +736,13 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
     setState(() { _requestingSmsContacts = true; _smsContactsError = null; });
     try {
       bool granted = true;
-      // SMS permissions
       final sendSmsStatus = await Permission.sms.status;
-      if (!sendSmsStatus.isGranted) {
+      if (!sendSmsStatus.isGranted || sendSmsStatus.isDenied) {
         final result = await Permission.sms.request();
         if (!result.isGranted) granted = false;
       }
-      // Contacts permission
       final contactsStatus = await Permission.contacts.status;
-      if (!contactsStatus.isGranted) {
+      if (!contactsStatus.isGranted || contactsStatus.isDenied) {
         final result = await Permission.contacts.request();
         if (!result.isGranted) granted = false;
       }
@@ -732,7 +753,6 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
       }
       if (!mounted) return;
       setState(() { _smsContactsError = null; _smsGranted = true; _contactsGranted = true; });
-      // Go to next page (notifications)
       _pageController.nextPage(duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     } catch (e) {
       if (!mounted) return;
@@ -748,7 +768,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
     setState(() { _requestingNotifications = true; _notificationsError = null; });
     try {
       final status = await Permission.notification.status;
-      if (!status.isGranted) {
+      if (!status.isGranted || status.isDenied) {
         final result = await Permission.notification.request();
         if (!result.isGranted) {
           if (!mounted) return;

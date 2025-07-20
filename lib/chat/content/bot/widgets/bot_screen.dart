@@ -28,6 +28,8 @@ import 'package:wellwiz/secrets.dart';
 import 'package:wellwiz/doctor/content/prescriptions/models/prescription.dart';
 import 'package:wellwiz/utils/message_tile.dart';
 import 'package:wellwiz/utils/color_palette.dart';
+import 'package:wellwiz/chat/content/bot/widgets/connecting_dialog.dart';
+import 'dart:core';
 
 class BotScreen extends StatefulWidget {
   const BotScreen({super.key});
@@ -67,6 +69,7 @@ class _BotScreenState extends State<BotScreen> {
   final Telephony telephony = Telephony.instance;
   static const String _unsyncedKey = 'unsynced_messages';
   String? _userImg;
+  bool _inputEnabled = false; // Add this to control input bar
 
   void _scrollDown() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -231,7 +234,15 @@ class _BotScreenState extends State<BotScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _showDisclaimerDialog());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final allowed = await _showDisclaimerDialog();
+      if (allowed == true) {
+        await _showConnectingAndGeminiHello();
+      } else {
+        // Optionally: pop the chat screen if not allowed
+        if (mounted) Navigator.of(context).pop();
+      }
+    });
     _model = GenerativeModel(
         model: 'gemini-2.0-flash-lite',
         apiKey: _apiKey,
@@ -245,8 +256,74 @@ class _BotScreenState extends State<BotScreen> {
     _initializeSharedPreferences();
   }
 
-  void _showDisclaimerDialog() {
+  // Add a helper to insert a divider message
+  Future<void> _addDivider() async {
+    setState(() {
+      history.add(ChatResponse(isUser: false, text: null, timestamp: null));
+    });
+    // No need to save divider to local or Firestore
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollDown());
+  }
+
+  Future<void> _showConnectingAndGeminiHello() async {
+    // Show connecting dialog
     showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const ConnectingDialog(),
+    );
+    String helloPrompt =
+        "Say hello to the user and inform them you are an AI assistant being used in a health and wellness context. Be friendly and brief.";
+    try {
+      var response = await _chat.sendMessage(Content.text(helloPrompt));
+      Navigator.of(context).pop(); // Close connecting dialog
+      String? helloText = response.text;
+      if (helloText == null || helloText.trim().isEmpty) {
+        await _addMessage(ChatResponse(
+          isUser: false,
+          text: "Our services are busy, try again later.",
+          timestamp: DateTime.now(),
+        ));
+      } else {
+        // Find the last non-user message (bot message)
+        ChatResponse? lastBotMsg;
+        for (var i = history.length - 1; i >= 0; i--) {
+          if (!history[i].isUser && (history[i].text != null && history[i].text!.trim().isNotEmpty)) {
+            lastBotMsg = history[i];
+            break;
+          }
+        }
+        // Regex for greeting
+        final greetingRegex = RegExp(r'\b(hello|hi|hey|greetings|welcome|good (morning|afternoon|evening|day))\b', caseSensitive: false);
+        bool lastWasGreeting = lastBotMsg != null && greetingRegex.hasMatch(lastBotMsg.text!.toLowerCase());
+        if (!lastWasGreeting) {
+          // If there are previous messages, add a divider before hello
+          if (history.isNotEmpty) {
+            await _addDivider();
+          }
+          await _addMessage(ChatResponse(
+            isUser: false,
+            text: helloText,
+            timestamp: DateTime.now(),
+          ));
+        }
+        // else: do not add another hello, just open chat
+      }
+    } catch (e) {
+      Navigator.of(context).pop();
+      await _addMessage(ChatResponse(
+        isUser: false,
+        text: "Our services are busy, try again later.",
+        timestamp: DateTime.now(),
+      ));
+    }
+    setState(() {
+      _inputEnabled = true;
+    });
+  }
+
+  Future<bool?> _showDisclaimerDialog() async {
+    return await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
@@ -259,13 +336,13 @@ class _BotScreenState extends State<BotScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).popUntil((route) => route.isFirst);
+              Navigator.of(context).pop(false);
             },
             child: Text('Back', style: TextStyle(fontFamily: 'Mulish', color: ColorPalette.black)),
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(true);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Color.fromARGB(255, 106, 172, 67),
@@ -339,6 +416,8 @@ class _BotScreenState extends State<BotScreen> {
     if (history.length % 10 == 0) {
       await _uploadBatchToFirestore();
     }
+    // Schedule scroll after the next frame, when ListView is updated
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollDown());
   }
 
   Future<void> _setupFCM() async {
@@ -795,7 +874,7 @@ If there is no mention of a medication or dosage, respond with \"none.\"
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? profile = prefs.getString('prof');
       String prompt =
-          "You are being used as a medical chatbot for health related queries. It is only a demonstration prototype and you are not being used for something professional or commercial. The user will enter his message now: $message. User message has ended. The user can also have a profile section where they may have been asked to avoid or take care of some things. The profile section starts now: $profile. Profile section has ended. Respond naturally to the user as a chatbot.";
+          "You are being used as a medical chatbot for health related queries. It is only a demonstration prototype and you are not being used for commercial purposes. But don't mention that youre some demo or prototype as this breaks the flow. Jut act natural. The user will enter his message now: $message. User message has ended. The user can also have a profile section where they may have been asked to avoid or take care of some things. The profile section starts now: $profile. Profile section has ended. Respond naturally to the user as a chatbot.";
       var response = await _chat.sendMessage(Content.text(prompt));
       // print("Response from model: ${response.text}");
 
@@ -1022,127 +1101,140 @@ If there is no mention of a medication or dosage, respond with \"none.\"
           ),
         ),
       ),
-      body: _charloading
-          ? Center(
-              child: CircularProgressIndicator(
-              color: Colors.green.shade600,
-            ))
-          : SafeArea(
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(15, 0, 15, 90),
-                      itemCount: history.length,
-                      controller: _scrollController,
-                      itemBuilder: (context, index) {
-                        var content = history[index];
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(15, 0, 15, 90),
+                itemCount: history.length,
+                controller: _scrollController,
+                itemBuilder: (context, index) {
+                  var content = history[index];
 
-                        if (content.text != null && content.text!.isNotEmpty) {
-                          return MessageTile(
-                            sendByMe: content.isUser,
-                            message: content.text!,
-                            senderName: content.isUser ? username : 'Wizard',
-                            avatarUrl: content.isUser ? (_userImg ?? userimgUrl) : 'assets/images/logo.jpeg',
-                            timestamp: content.timestamp,
-                          );
-                        }
+                  // Render divider if text is null
+                  if (content.text == null) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      child: Divider(
+                        thickness: 1.5,
+                        color: Colors.grey.shade300,
+                      ),
+                    );
+                  }
 
-                        return const SizedBox.shrink();
-                      },
-                      separatorBuilder: (context, index) {
-                        return const SizedBox(height: 15);
-                      },
-                    ),
-                  ),
-                  // Input bar here, outside the Expanded
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(10, 0, 10, 18),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.07),
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            cursorColor: Color.fromARGB(255, 106, 172, 67),
-                            controller: _textController,
-                            autofocus: false,
-                            focusNode: _textFieldFocus,
-                            style: const TextStyle(fontFamily: 'Mulish'),
-                            decoration: InputDecoration(
-                              hintText: 'Type a message...',
-                              hintStyle: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontFamily: 'Mulish',
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade100,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onSubmitted: (msg) {
-                              if (msg.trim().isNotEmpty) _sendChatMessage(msg.trim());
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        GestureDetector(
-                          onTap: () {
-                            final message = _textController.text.trim();
-                            if (message.isNotEmpty) {
-                              setState(() {
-                                _addMessage(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
-                                _loading = true;
-                              });
-                              _sendChatMessage(message).then((_) {
-                                setState(() {
-                                  _loading = false;
-                                });
-                              });
-                            }
-                          },
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 120),
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: Color.fromARGB(255, 106, 172, 67),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
-                                  blurRadius: 6,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: _loading
-                                ? const Padding(
-                                    padding: EdgeInsets.all(12.0),
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : Icon(Icons.send_rounded, color: Colors.white, size: 26),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  if (content.text != null && content.text!.isNotEmpty) {
+                    return MessageTile(
+                      sendByMe: content.isUser,
+                      message: content.text!,
+                      senderName: content.isUser ? username : 'Wizard',
+                      avatarUrl: content.isUser ? (_userImg ?? userimgUrl) : 'assets/images/logo.jpeg',
+                      timestamp: content.timestamp,
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+                separatorBuilder: (context, index) {
+                  return const SizedBox(height: 15);
+                },
               ),
             ),
+            // Input bar here, outside the Expanded
+            AbsorbPointer(
+              absorbing: !_inputEnabled,
+              child: Opacity(
+                opacity: _inputEnabled ? 1.0 : 0.5,
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(10, 0, 10, 18),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.07),
+                        blurRadius: 12,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          cursorColor: Color.fromARGB(255, 106, 172, 67),
+                          controller: _textController,
+                          autofocus: false,
+                          focusNode: _textFieldFocus,
+                          style: const TextStyle(fontFamily: 'Mulish'),
+                          decoration: InputDecoration(
+                            hintText: 'Type a message...',
+                            hintStyle: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontFamily: 'Mulish',
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade100,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onSubmitted: (msg) {
+                            if (_inputEnabled && msg.trim().isNotEmpty) _sendChatMessage(msg.trim());
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      GestureDetector(
+                        onTap: () {
+                          if (!_inputEnabled) return;
+                          final message = _textController.text.trim();
+                          if (message.isNotEmpty) {
+                            setState(() {
+                              _addMessage(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
+                              _loading = true;
+                            });
+                            _sendChatMessage(message).then((_) {
+                              setState(() {
+                                _loading = false;
+                              });
+                            });
+                          }
+                        },
+                        child: AnimatedContainer(
+                          duration: Duration(milliseconds: 120),
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: Color.fromARGB(255, 106, 172, 67),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: _loading
+                              ? const Padding(
+                                  padding: EdgeInsets.all(12.0),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                )
+                              : Icon(Icons.send_rounded, color: Colors.white, size: 26),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

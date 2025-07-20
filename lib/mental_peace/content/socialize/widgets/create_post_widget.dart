@@ -37,7 +37,7 @@ class _CreatePostWidgetState extends State<CreatePostWidget> {
         id: '',
         authorId: user.uid,
         authorHandle: userDoc['handle'] ?? '',
-        authorName: user.displayName ?? '',
+        authorName: userDoc['name'] ?? '',
         authorPhoto: user.photoURL ?? '',
         content: _contentController.text.trim(),
         imageUrl: _imageUrl ?? '',

@@ -5,11 +5,10 @@ import 'package:wellwiz/login/login_page.dart';
 import 'package:wellwiz/quick_access/content/account/widgets/account_info_card.dart';
 import 'package:wellwiz/quick_access/content/account/widgets/quick_access_title.dart';
 import 'package:wellwiz/quick_access/content/bookings/widgets/my_bookings_button.dart';
-import 'package:wellwiz/quick_access/content/reminders/widgets/reminder_page.dart';
+import 'package:wellwiz/quick_access/content/reminder_only/reminder_page.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/thoughts_service.dart';
 import 'package:wellwiz/quick_access/content/logout/widgets/log_out_button.dart';
 import 'package:wellwiz/quick_access/content/positivity/widgets/daily_positivity_button.dart';
-import 'package:wellwiz/quick_access/content/reminders/widgets/my_reminders_button.dart';
 import 'package:wellwiz/quick_access/content/sos/widgets/sos_contacts_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,81 +16,32 @@ import 'package:sensors_plus/sensors_plus.dart';
 import 'dart:math';
 import 'package:wellwiz/quick_access/content/account/widgets/gyro_reactive_card.dart';
 import 'package:wellwiz/quick_access/content/account/edit_account_info.dart';
-import 'package:wellwiz/utils/user_info_cache.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wellwiz/utils/color_palette.dart';
+import '../providers/user_info_provider.dart';
+import 'package:shimmer/shimmer.dart';
 
-class QuickAccessPage extends StatefulWidget {
+class QuickAccessPage extends ConsumerStatefulWidget {
   const QuickAccessPage({super.key});
 
   @override
-  State<QuickAccessPage> createState() => _QuickAccessPageState();
+  ConsumerState<QuickAccessPage> createState() => _QuickAccessPageState();
 }
 
-class _QuickAccessPageState extends State<QuickAccessPage> {
-  final ThoughtsService _thoughtsService = ThoughtsService();
-
-  // Account info state
-  String? _handle;
-  String? _displayName;
-  String? _photoURL;
-  int? _age;
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserInfo();
-  }
-
-  Future<void> _loadUserInfo() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      setState(() {
-        _isLoading = false;
-      });
-      return;
-    }
-    final cached = await UserInfoCache.getUserInfo();
-    if (cached != null) {
-      setState(() {
-        _handle = cached['handle'];
-        _displayName = cached['displayName'];
-        _photoURL = cached['photoURL'];
-        _age = cached['age'] is int ? cached['age'] : int.tryParse(cached['age']?.toString() ?? '');
-        _isLoading = false;
-      });
-      return;
-    }
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    final data = doc.data();
-    if (data != null) {
-      UserInfoCache.setUserInfo(data);
-      setState(() {
-        _handle = data['handle'];
-        _displayName = data['displayName'];
-        _photoURL = data['photoURL'];
-        _age = data['age'] is int ? data['age'] : int.tryParse(data['age']?.toString() ?? '');
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
+class _QuickAccessPageState extends ConsumerState<QuickAccessPage> {
 
   Future<void> _fetchHandle() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
       setState(() {
-        _isLoading = false;
+        // _isLoading = false; // Removed
       });
       return;
     }
     final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     setState(() {
-      _handle = doc.data()?['handle'];
-      _isLoading = false;
+      // _handle = doc.data()?['handle']; // Removed
+      // _isLoading = false; // Removed
     });
   }
 
@@ -100,17 +50,20 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
     return query.docs.isEmpty;
   }
 
-  Future<void> _editDisplayName() async {
+  Future<void> _editName() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    final TextEditingController nameController = TextEditingController(text: user.displayName ?? '');
+    // Always fetch the current name from Firestore
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final currentName = doc.data()?['name'] ?? '';
+    final TextEditingController nameController = TextEditingController(text: currentName);
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey.shade50,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text(
-          'Edit Display Name',
+          'Edit Name',
           style: TextStyle(
             fontSize: 20,
             color: Colors.grey.shade700,
@@ -120,7 +73,7 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
         ),
         content: TextField(
           controller: nameController,
-          decoration: const InputDecoration(labelText: 'Display Name'),
+          decoration: const InputDecoration(labelText: 'Name'),
           style: const TextStyle(fontFamily: 'Mulish'),
         ),
         actions: [
@@ -140,11 +93,11 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
         ],
       ),
     );
-    if (result != null && result.isNotEmpty && result != user.displayName) {
-      await user.updateDisplayName(result);
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({'displayName': result}, SetOptions(merge: true));
+    if (result != null && result.isNotEmpty && result != currentName) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({'name': result}, SetOptions(merge: true));
+      ref.read(userInfoProvider.notifier).loadUserInfo();
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Display name updated!')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name updated!')));
     }
   }
 
@@ -163,7 +116,7 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
         final data = userDoc.data()!;
         users.add({
           'uid': doc.id,
-          'displayName': data['displayName'] ?? '',
+          'name': data['name'] ?? '',
           'handle': data['handle'] ?? '',
           'photoURL': data['photoURL'] ?? '',
         });
@@ -211,7 +164,7 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
                         leading: userData['photoURL'].isNotEmpty
                             ? CircleAvatar(backgroundImage: NetworkImage(userData['photoURL']))
                             : const CircleAvatar(child: Icon(Icons.account_circle)),
-                        title: Text(userData['displayName'], style: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
+                        title: Text(userData['name'], style: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
                         subtitle: Text('@${userData['handle']}', style: TextStyle(fontFamily: 'Mulish', color: Colors.grey.shade700)),
                         trailing: IconButton(
                           icon: const Icon(Icons.close, color: Colors.red),
@@ -233,8 +186,8 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
                                 ),
                                 content: Text(
                                   type == 'followers'
-                                    ? 'Are you sure you want to remove \\${userData['displayName']} (@\\${userData['handle']}) from your followers?'
-                                    : 'Are you sure you want to unfollow \\${userData['displayName']} (@\\${userData['handle']})?',
+                                    ? 'Are you sure you want to remove \\${userData['name']} (@\\${userData['handle']}) from your followers?'
+                                    : 'Are you sure you want to unfollow \\${userData['name']} (@\\${userData['handle']})?',
                                   style: const TextStyle(fontFamily: 'Mulish'),
                                 ),
                                 actions: [
@@ -320,7 +273,8 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
       final int hour = selectedTime.hour;
       final int minute = selectedTime.minute;
       print('[DEBUG] Picked time for positivity: ' + hour.toString() + ':' + minute.toString());
-      await _thoughtsService.scheduleDailyThoughtNotification(hour, minute);
+      // final ThoughtsService _thoughtsService = ThoughtsService(); // Removed
+      // await _thoughtsService.scheduleDailyThoughtNotification(hour, minute); // Removed
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -332,13 +286,29 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
 
   @override
   Widget build(BuildContext context) {
+    final userInfoAsync = ref.watch(userInfoProvider);
     return ListView(
       children: [
         const QuickAccessTitle(),
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: GyroReactiveCard(child: AccountInfoCard()),
+          child: GyroReactiveCard(
+            child: userInfoAsync.when(
+              loading: () => const AccountInfoCardShimmer(),
+              error: (e, st) => const Center(child: Text('Error loading user info')),
+              data: (userInfo) => AccountInfoCard(
+                name: userInfo.name,
+                handle: userInfo.handle,
+                photoURL: userInfo.photoURL,
+                age: userInfo.age,
+                followers: userInfo.followersCount,
+                following: userInfo.followingCount,
+                flairs: userInfo.flairs,
+                ref: ref,
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 32),
         Padding(
@@ -355,7 +325,8 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
                 icon: Icons.edit,
                 label: 'Edit',
                 onTap: () async {
-                  await showModalBottomSheet(
+                      final notifier = ref.read(userInfoProvider.notifier);
+                      final result = await showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
@@ -363,7 +334,9 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
                     ),
                     builder: (context) => const EditAccountInfoSheet(),
                   );
-                  setState(() {}); // Refresh after editing
+                      if (result == true) {
+                        notifier.loadUserInfo(); // Refresh provider after editing
+                      }
                 },
               ),
               _QuickAccessGridTile(
@@ -396,11 +369,7 @@ class _QuickAccessPageState extends State<QuickAccessPage> {
                 iconColor: Colors.red.shade700,
                 onTap: () async {
                   await FirebaseAuth.instance.signOut();
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    (route) => false,
-                  );
+                  // Removed manual navigation to LoginScreen. Let main.dart handle navigation.
                 },
               ),
             ],
@@ -546,6 +515,98 @@ class _AnimatedScaleOnTapState extends State<_AnimatedScaleOnTap> with SingleTic
       child: Transform.scale(
         scale: _scale,
         child: widget.child,
+      ),
+    );
+  }
+}
+
+// Shimmer skeleton for AccountInfoCard
+class AccountInfoCardShimmer extends StatelessWidget {
+  const AccountInfoCardShimmer({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      margin: EdgeInsets.zero,
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey.shade800,
+        highlightColor: Colors.grey.shade600,
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.26,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors: [ColorPalette.black, Colors.grey.shade900],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade700,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 20,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade700,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 16,
+                            width: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade700,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Container(
+                  height: 24,
+                  width: 90,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade700,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 24,
+                  width: 90,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade700,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:wellwiz/utils/color_palette.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../providers/user_info_provider.dart';
 
-class EditAccountInfoSheet extends StatefulWidget {
+class EditAccountInfoSheet extends ConsumerStatefulWidget {
   const EditAccountInfoSheet({Key? key}) : super(key: key);
 
   @override
-  State<EditAccountInfoSheet> createState() => _EditAccountInfoSheetState();
+  ConsumerState<EditAccountInfoSheet> createState() => _EditAccountInfoSheetState();
 }
 
-class _EditAccountInfoSheetState extends State<EditAccountInfoSheet> {
-  final _displayNameController = TextEditingController();
+class _EditAccountInfoSheetState extends ConsumerState<EditAccountInfoSheet> {
   final _emailController = TextEditingController();
   final _ageController = TextEditingController();
   final _nameController = TextEditingController();
@@ -45,7 +46,6 @@ class _EditAccountInfoSheetState extends State<EditAccountInfoSheet> {
     final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     final data = doc.data() ?? {};
     setState(() {
-      _displayNameController.text = user.displayName ?? '';
       _emailController.text = user.email ?? '';
       _ageController.text = (data['age']?.toString() ?? '');
       _nameController.text = (data['name'] ?? '');
@@ -57,19 +57,10 @@ class _EditAccountInfoSheetState extends State<EditAccountInfoSheet> {
 
   Future<void> _save() async {
     setState(() { _saving = true; _error = null; });
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
     try {
-      await user.updateDisplayName(_displayNameController.text.trim());
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'displayName': _displayNameController.text.trim(),
-        // 'email': _emailController.text.trim(), // Do not update email
-        'age': int.tryParse(_ageController.text.trim()),
-        'gender': gender,
-        'goals': selectedGoals,
-        'name': _nameController.text.trim(),
-      }, SetOptions(merge: true));
-      Navigator.of(context).pop();
+      await ref.read(userInfoProvider.notifier).updateName(_nameController.text.trim());
+      // Optionally update other fields here if needed
+      Navigator.of(context).pop(true);
     } catch (e) {
       setState(() { _error = 'Failed to update info: $e'; });
     } finally {
@@ -100,8 +91,8 @@ class _EditAccountInfoSheetState extends State<EditAccountInfoSheet> {
                       ),
                       const SizedBox(height: 24),
                       TextField(
-                        controller: _displayNameController,
-                        decoration: const InputDecoration(labelText: 'Display Name'),
+                        controller: _nameController,
+                        decoration: const InputDecoration(labelText: 'Name'),
                         style: const TextStyle(fontFamily: 'Mulish'),
                       ),
                       const SizedBox(height: 16),
@@ -116,12 +107,6 @@ class _EditAccountInfoSheetState extends State<EditAccountInfoSheet> {
                         controller: _ageController,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(labelText: 'Age'),
-                        style: const TextStyle(fontFamily: 'Mulish'),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(labelText: 'Name'),
                         style: const TextStyle(fontFamily: 'Mulish'),
                       ),
                       const SizedBox(height: 16),

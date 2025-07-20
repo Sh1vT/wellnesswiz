@@ -25,7 +25,7 @@ class _CommentSheetState extends State<CommentSheet> {
       id: '',
       postId: widget.postId,
       authorId: user.uid,
-      authorName: user.displayName ?? '',
+      authorName: userDoc['name'] ?? '',
       authorPhoto: user.photoURL ?? '',
       content: _controller.text.trim(),
       timestamp: Timestamp.now(),

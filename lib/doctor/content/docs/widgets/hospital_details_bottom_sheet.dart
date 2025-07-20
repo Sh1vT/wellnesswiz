@@ -22,7 +22,7 @@ class _HospitalDetailsBottomSheetState extends State<HospitalDetailsBottomSheet>
   List<HospitalRating> ratings = [];
   bool loading = true;
   String? userId;
-  String userDisplayName = '';
+  String userName = '';
   late TextEditingController _reviewController;
   bool showReviewControls = false;
 
@@ -43,11 +43,11 @@ class _HospitalDetailsBottomSheetState extends State<HospitalDetailsBottomSheet>
     final key = generateHospitalKey(widget.hospital);
     final user = FirebaseAuth.instance.currentUser;
     userId = user?.uid;
-    userDisplayName = user?.displayName ?? '';
+    userName = user?.displayName ?? '';
     final fetchedRatings = await HospitalRatingService.getRatingsForHospital(key);
     final userRatingObj = fetchedRatings.firstWhere(
       (r) => r.userId == userId,
-      orElse: () => HospitalRating(userId: userId ?? '', userName: userDisplayName, rating: 0, review: '', timestamp: DateTime.now()),
+      orElse: () => HospitalRating(userId: userId ?? '', userName: userName, rating: 0, review: '', timestamp: DateTime.now()),
     );
     setState(() {
       ratings = fetchedRatings;
@@ -64,7 +64,7 @@ class _HospitalDetailsBottomSheetState extends State<HospitalDetailsBottomSheet>
     final key = generateHospitalKey(widget.hospital);
     final rating = HospitalRating(
       userId: userId!,
-      userName: userDisplayName,
+      userName: userName,
       rating: userRating,
       review: reviewText,
       timestamp: DateTime.now(),
@@ -314,7 +314,7 @@ class _HospitalDetailsBottomSheetState extends State<HospitalDetailsBottomSheet>
                               // Restore previous review if editing
                               final userRatingObj = ratings.firstWhere(
                                 (r) => r.userId == userId,
-                                orElse: () => HospitalRating(userId: userId ?? '', userName: userDisplayName, rating: 0, review: '', timestamp: DateTime.now()),
+                                orElse: () => HospitalRating(userId: userId ?? '', userName: userName, rating: 0, review: '', timestamp: DateTime.now()),
                               );
                               userRating = userRatingObj.rating;
                               reviewText = userRatingObj.review;

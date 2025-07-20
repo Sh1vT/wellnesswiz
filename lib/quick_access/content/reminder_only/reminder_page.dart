@@ -13,6 +13,7 @@ import 'package:android_intent_plus/flag.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/workmanager_notification_fallback.dart' as workmanager_fallback;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 class ReminderPage extends StatefulWidget {
   final String userId;
@@ -125,24 +126,19 @@ class _ReminderPageState extends State<ReminderPage> {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final upcomingReminders = _reminders.where((r) => r.scheduledTime.isAfter(now)).toList();
+    
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          Row(
-            children: [
-              IconButton(
-                  onPressed: _pickTimeAndScheduleDailyThought,
-                  icon: Icon(Icons.schedule_rounded)),
-              SizedBox(
-                width: 10,
-              )
-            ],
-          )
-        ],
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20,),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: Column(
         children: [
-          // Title section
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -152,7 +148,7 @@ class _ReminderPageState extends State<ReminderPage> {
                     fontWeight: FontWeight.w700,
                     fontFamily: 'Mulish',
                     fontSize: 40,
-                    color: Color.fromRGBO(106, 172, 67, 1)),
+                    color: Color(0xFF6AAC43)),
               ),
               Text(
                 " Reminders",
@@ -160,153 +156,75 @@ class _ReminderPageState extends State<ReminderPage> {
                     fontWeight: FontWeight.w700,
                     fontFamily: 'Mulish',
                     fontSize: 40,
-                    color: const Color.fromRGBO(97, 97, 97, 1)),
+                    color: ColorPalette.black),
               ),
             ],
           ),
-          SizedBox(height: 12),
-
-          // Replace the fixed height Container with Expanded
-          Expanded(
-      child: upcomingReminders.isEmpty
-          ? ListView.builder(
-              itemCount: 1, // Show just one item
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 12),
-                  child: Container(
-                    height: 80, // Set height similar to regular tiles
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: const Center(
-                      child: Text(
-                        'Add some reminders!',
-                        style: TextStyle(
-                          fontFamily: 'Mulish',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ),
+          const SizedBox(height: 20),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 24, right: 8),
+              child: ActionChip(
+                avatar: const Icon(Icons.add, color: Colors.white, size: 20),
+                label: const Text(
+                  'Add',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Mulish',
+                    fontWeight: FontWeight.w600,
                   ),
-                );
-              },
-            )
-          : ListView.builder(
-              itemCount: upcomingReminders.length,
-              itemBuilder: (context, index) {
-                final reminder = upcomingReminders[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.all(8),
-                    child: ListTile(
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete,
-                            color: Colors.grey.shade700),
-                        onPressed: () => _deleteReminder(reminder),
-                      ),
-                      leading: Icon(
-                        Icons.alarm,
-                        size: 30,
-                        color: Color.fromRGBO(106, 172, 67, 1),
-                      ),
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            reminder.title,
-                            style: const TextStyle(
-                              fontFamily: 'Mulish',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            reminder.description,
-                            style: const TextStyle(
-                              fontFamily: 'Mulish',
-                              fontSize: 14,
-                              color: Colors.black54,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            '${DateFormat.yMMMd().add_jm().format(reminder.scheduledTime)}',
-                            style: const TextStyle(
-                              fontFamily: 'Mulish',
-                              fontSize: 12,
-                              color: Colors.black54,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-),
-
-
-
-          // Add reminder button
-          Padding(
-            padding: const EdgeInsets.all(16), // Add padding for better spacing
-            child: Container(
-              height: 42,
-              width: 42,
-              child: IconButton(
-                color: Colors.green.shade500,
-                onPressed: () {
-                  _showAddReminderDialog(); // Open dialog to add reminder
-                },
-                icon: const Icon(
-                  Icons.add,
-                  size: 20,
                 ),
+                backgroundColor: Color(0xFF6AAC43),
+                onPressed: _showAddReminderDialog,
+                elevation: 2,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               ),
             ),
           ),
+          const SizedBox(height: 12),
+          upcomingReminders.isEmpty
+              ? Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: 80,
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: ColorPalette.greenSwatch[50]!.withOpacity(0.7),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Add some reminders!',
+                          style: TextStyle(fontFamily: 'Mulish', fontSize: 15, color: ColorPalette.black),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                )
+              : Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                    itemCount: upcomingReminders.length,
+                    itemBuilder: (context, index) {
+                      final reminder = upcomingReminders[index];
+                      return _ReminderCard(
+                        reminder: reminder,
+                        onDelete: () => _deleteReminder(reminder),
+                      );
+                    },
+                  ),
+                ),
         ],
       ),
-      // Remove floatingActionButton
     );
   }
 
-  void _showAddReminderDialog() async {
-    print('[DEBUG] _showAddReminderDialog called');
-    // Request notification permission first
-    final status = await Permission.notification.request();
-    print('[DEBUG] Notification permission status: \\${status.toString()}');
-    if (!status.isGranted) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Notification Permission Required'),
-          content: const Text('Please enable notifications to receive reminders.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-      print('[DEBUG] Notification permission not granted, dialog shown');
-      return;
-    }
+  void _showAddReminderDialog() {
     String title = '';
     String description = '';
     DateTime? scheduledTime;
@@ -317,73 +235,163 @@ class _ReminderPageState extends State<ReminderPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add Reminder'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          backgroundColor: Colors.grey.shade50,
+          title: const Text('Add Reminder', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold, fontSize: 22, color: Color(0xFF212121))),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: const InputDecoration(labelText: 'Title', labelStyle: TextStyle(fontFamily: 'Mulish')),
                 controller: titleController,
+                style: const TextStyle(fontFamily: 'Mulish'),
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: const InputDecoration(labelText: 'Description', labelStyle: TextStyle(fontFamily: 'Mulish')),
                 controller: descController,
+                style: const TextStyle(fontFamily: 'Mulish'),
               ),
-              TextButton(
-                child: const Text('Select Date & Time'),
-                onPressed: () async {
-                  final selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2101),
-                  );
-                  if (selectedDate != null) {
-                    final selectedTime = await showTimePicker(
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  icon: const Icon(Icons.calendar_today, size: 18, color: Color(0xFF6AAC43)),
+                  label: Text(
+                    scheduledTime == null
+                        ? 'Select Date & Time'
+                        : '${scheduledTime!.day}/${scheduledTime!.month}/${scheduledTime!.year}  ${scheduledTime!.hour.toString().padLeft(2, '0')}:${scheduledTime!.minute.toString().padLeft(2, '0')}',
+                    style: const TextStyle(fontFamily: 'Mulish', color: Color(0xFF6AAC43), fontWeight: FontWeight.w600),
+                  ),
+                  onPressed: () async {
+                    final selectedDate = await showDatePicker(
                       context: context,
-                      initialTime: TimeOfDay.now(),
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime(2101),
                     );
-                    if (selectedTime != null) {
-                      scheduledTime = DateTime(
-                        selectedDate.year,
-                        selectedDate.month,
-                        selectedDate.day,
-                        selectedTime.hour,
-                        selectedTime.minute,
+                    if (selectedDate != null) {
+                      final selectedTime = await showTimePicker(
+                        context: context,
+                        initialTime: TimeOfDay.now(),
                       );
-                      print('[DEBUG] User selected scheduledTime: $scheduledTime');
+                      if (selectedTime != null) {
+                        scheduledTime = DateTime(
+                          selectedDate.year,
+                          selectedDate.month,
+                          selectedDate.day,
+                          selectedTime.hour,
+                          selectedTime.minute,
+                        );
+                        // Force dialog to rebuild to show selected time
+                        (context as Element).markNeedsBuild();
+                      }
                     }
-                  }
-                },
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Color(0xFF6AAC43),
+                    textStyle: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.w600),
+                  ),
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(fontFamily: 'Mulish', color: Color(0xFF212121))),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            TextButton(
-              child: const Text('Add'),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: Color(0xFF6AAC43),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                textStyle: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold),
+              ),
+              child: const Text('Add', style: TextStyle(color: Colors.white, fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
               onPressed: () {
-                setState(() {
-                  title = titleController.text;
-                  description = descController.text;
-                });
-                print('[DEBUG] Add button pressed with title: $title, description: $description, scheduledTime: $scheduledTime');
-                if (title.isNotEmpty &&
-                    description.isNotEmpty &&
-                    scheduledTime != null) {
+                title = titleController.text;
+                description = descController.text;
+                if (title.isNotEmpty && description.isNotEmpty && scheduledTime != null) {
                   _addReminder(title, description, scheduledTime!);
                   Navigator.of(context).pop();
-                } else {
-                  print('[DEBUG] Invalid input, reminder not added');
                 }
               },
             ),
           ],
         );
       },
+    );
+  }
+}
+
+// Add ReminderCard widget for card style
+class _ReminderCard extends StatelessWidget {
+  final Reminder reminder;
+  final VoidCallback onDelete;
+  const _ReminderCard({required this.reminder, required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    reminder.title,
+                    style: const TextStyle(
+                      color: Color(0xFF212121),
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Mulish',
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    reminder.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                      fontFamily: 'Mulish',
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${DateFormat.yMMMd().add_jm().format(reminder.scheduledTime)}',
+                    style: const TextStyle(
+                      fontFamily: 'Mulish',
+                      fontSize: 12,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(6),
+                child: const Icon(Icons.delete, color: ColorPalette.black, size: 18),
+              ),
+              onPressed: onDelete,
+              tooltip: 'Delete',
+              splashRadius: 20,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
