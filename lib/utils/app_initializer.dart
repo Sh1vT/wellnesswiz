@@ -4,9 +4,17 @@ import 'package:wellwiz/utils/hospital_utils.dart';
 import 'package:wellwiz/utils/hospital_key.dart';
 import 'package:wellwiz/utils/hospital_rating_service.dart';
 import 'package:wellwiz/utils/user_info_cache.dart';
+import 'package:wellwiz/utils/thought_service.dart';
+import 'package:wellwiz/utils/exercise_music_service.dart';
 
 Future<void> initializeAppStartup() async {
   try {
+    // Initialize thoughts and exercise music fetching
+    await Future.wait([
+      ThoughtService.fetchThoughts(),
+      ExerciseMusicService.fetchMusics(),
+    ]);
+
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {

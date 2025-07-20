@@ -49,11 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _checkIfUserIsReturning() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      // Already signed in, go to main app
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => GlobalScaffold()),
-      );
+      // Already signed in, let main app handle navigation
       return;
     }
     // If user is not signed in, but has previously completed onboarding, default to Login
@@ -120,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
         prefs.setString('username', userDoc.data()?['name'] ?? userCredential.user?.displayName ?? '');
         prefs.setString('userhandle', userDoc.data()?['handle'] ?? '');
         prefs.setString('userimg', userCredential.user?.photoURL ?? '');
-        prefs.setBool('onboardingCompleted', true);
+        // Don't set onboardingCompleted here - let main app handle it
         // Save FCM token to Firestore
         String? fcmToken = await FirebaseMessaging.instance.getToken();
         if (userId != null && fcmToken != null) {
@@ -128,10 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
             'fcmToken': fcmToken,
           }, SetOptions(merge: true));
         }
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => GlobalScaffold()),
-        );
+        // Let main app handle navigation by rebuilding
         setState(() { _isSigningIn = false; });
         return;
       }
@@ -176,11 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
       prefs.setString('username', _nameController.text);
       prefs.setString('userhandle', userHandle);
       prefs.setString('userimg', googleUser.photoUrl ?? '');
-      prefs.setBool('onboardingCompleted', true);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => GlobalScaffold()),
-      );
+      // Don't set onboardingCompleted here - let main app handle it
+      // Let main app handle navigation by rebuilding
+      setState(() { _isSigningIn = false; });
     } catch (e) {
       print("Google Sign-In failed: $e");
     }
@@ -261,7 +252,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                         isSignUp = true;
                                         _currentPage = 0;
                                       });
-                                      _pageController.jumpToPage(0);
+                                      if (_pageController.hasClients) {
+                                        _pageController.jumpToPage(0);
+                                      }
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -353,7 +346,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                         isSignUp = true;
                                         _currentPage = 0;
                                       });
-                                      _pageController.jumpToPage(0);
+                                      if (_pageController.hasClients) {
+                                        _pageController.jumpToPage(0);
+                                      }
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),

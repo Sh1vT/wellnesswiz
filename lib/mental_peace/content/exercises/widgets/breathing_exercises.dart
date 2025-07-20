@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wellwiz/mental_peace/content/exercises/widgets/exercise_screen.dart';
 import 'package:wellwiz/utils/poppy_tile.dart';
+import 'package:wellwiz/utils/color_palette.dart';
 
 class BreathingExercises extends StatelessWidget {
   const BreathingExercises({super.key});
@@ -33,16 +34,37 @@ class BreathingExercises extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Start Exercise'),
-          content: Text('Do you want to start $exercise?'),
+          content: Text('Do you want to start $exercise Breathing?'),
           actions: <Widget>[
             TextButton(
-              child: const Text('No'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: ColorPalette.black,
+                  fontFamily: 'Mulish',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
-            TextButton(
-              child: const Text('Yes'),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ColorPalette.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Start',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Mulish',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.push(

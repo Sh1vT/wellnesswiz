@@ -10,12 +10,13 @@ import 'package:wellwiz/login/login_page.dart';
 import 'package:wellwiz/quick_access/content/reminder_only/workmanager_notification_fallback.dart' show callbackDispatcher;
 import 'package:wellwiz/utils/achievement_uploader.dart';
 import 'package:wellwiz/utils/chatroom_uploader.dart';
+import 'package:wellwiz/utils/exercise_music_uploader.dart';
 import 'package:wellwiz/utils/hospital_utils.dart';
+import 'package:wellwiz/utils/thought_uploader.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:wellwiz/doctor/doctor_page.dart';
 import 'package:wellwiz/utils/color_palette.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:wellwiz/onboarding/app_tour_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:wellwiz/globalScaffold/splash_screen.dart';
@@ -49,15 +50,6 @@ void main() async {
     print('main.dart: Firebase already initialized');
   }
 
-  // FCM setup
-  NotificationSettings settings = await FirebaseMessaging.instance.requestPermission();
-  print('FCM permission status: ${settings.authorizationStatus}');
-  String? fcmToken = await FirebaseMessaging.instance.getToken();
-  print('FCM Token: ${fcmToken ?? "(null)"}');
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('FCM onMessage: ${message.notification?.title} - ${message.notification?.body}');
-  });
-
   tz.initializeTimeZones();
   await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
@@ -69,6 +61,10 @@ void main() async {
 
   // clearOldHealthData();
   // await clearEmotionMonitorData();
+
+
+  // await ThoughtUploader.uploadThoughts(ThoughtUploader.sampleThoughts);
+  // await ExerciseMusicUploader.uploadMusics(ExerciseMusicUploader.sampleMusics);
 
   runApp(ProviderScope(child: MyApp()));
 }
@@ -99,6 +95,13 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _showSplashAndInit();
+    
+    // Listen for auth state changes
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (mounted) {
+        _handleAuthStateChange(user);
+      }
+    });
   }
 
   Future<void> _showSplashAndInit() async {
@@ -113,25 +116,57 @@ class _MyAppState extends State<MyApp> {
   Future<void> _checkAuthAndOnboarding() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
+      print('DEBUG: Current user: ${user?.uid}');
+      
+      if (user != null) {
+        // User is logged in - check if onboarding is complete in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        final onboardingDone = prefs.getBool('onboardingCompleted') ?? false;
+        print('DEBUG: SharedPreferences onboarding status: $onboardingDone');
+        
+        if (onboardingDone) {
+          // Onboarding complete - user can go directly to app
+          print('DEBUG: Onboarding complete, going to app directly');
+          _user = user;
+          _onboardingComplete = true;
+          await initializeAppStartup();
+        } else {
+          // User logged in but onboarding not complete - show onboarding
+          print('DEBUG: Onboarding not complete, showing onboarding');
+          _user = user;
+          _onboardingComplete = false;
+        }
+      } else {
+        // No user logged in - show login screen, then onboarding
+        print('DEBUG: No user logged in, showing login screen');
         _user = null;
         _onboardingComplete = false;
-        await initializeAppStartup();
-        await UserInfoCache.getUserInfo();
-        return;
       }
-      // Check onboarding status in Firebase
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      final onboardingDone = doc.data()?['onboardingCompleted'] == true;
-      // Fallback to local storage if needed
-      final prefs = await SharedPreferences.getInstance();
-      final localOnboarding = prefs.getBool('onboardingCompleted') ?? false;
-      _user = user;
-      _onboardingComplete = onboardingDone || localOnboarding;
-      await initializeAppStartup();
+      
       await UserInfoCache.getUserInfo();
     } catch (e) {
-      // ignore
+      print('DEBUG: Error in _checkAuthAndOnboarding: $e');
+      // If any error, default to login flow
+      _user = null;
+      _onboardingComplete = false;
+    }
+  }
+
+  Future<void> _handleAuthStateChange(User? user) async {
+    if (user != null && _user == null) {
+      // User just logged in
+      
+      // Temporary: Clear Firebase onboarding status for testing
+      // await clearFirebaseOnboardingStatus(); // This line is removed
+      
+      await _checkAuthAndOnboarding();
+      setState(() {});
+    } else if (user == null && _user != null) {
+      // User just logged out
+      setState(() {
+        _user = null;
+        _onboardingComplete = false;
+      });
     }
   }
 
@@ -177,13 +212,16 @@ class _MyAppState extends State<MyApp> {
                   onFinish: () async {
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('onboardingCompleted', true);
-                    final user = FirebaseAuth.instance.currentUser;
-                    if (user != null) {
-                      await FirebaseFirestore.instance.collection('users').doc(user.uid).set(
-                        {'onboardingCompleted': true},
-                        SetOptions(merge: true),
-                      );
-                    }
+                    
+                    // Show splash screen while initializing app
+                    rootNavigatorKey.currentState?.pushReplacement(
+                      MaterialPageRoute(builder: (_) => const SplashScreen()),
+                    );
+                    
+                    // Run initialization in background
+                    await initializeAppStartup();
+                    
+                    // Navigate to main app after initialization
                     rootNavigatorKey.currentState?.pushReplacement(
                       MaterialPageRoute(builder: (_) => GlobalScaffold()),
                     );
