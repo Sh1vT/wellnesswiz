@@ -1,30 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wellwiz/utils/typing_indicator.dart';
 
 class MessageTile extends StatelessWidget {
   const MessageTile({
     Key? key,
     required this.sendByMe,
-    required this.message,
-    this.senderName = '',
-    this.senderId,
-    this.timestamp,
+    this.message,
+    required this.senderName,
     this.avatarUrl,
+    this.timestamp,
+    this.typingIndicator = false,
+    this.senderId,
   }) : super(key: key);
 
   final bool sendByMe;
-  final String message;
+  final String? message;
   final String senderName;
   final String? senderId;
   final DateTime? timestamp;
   final String? avatarUrl;
+  final bool typingIndicator;
 
   @override
   Widget build(BuildContext context) {
     final themeGreen = const Color.fromARGB(255, 106, 172, 67);
     final themeGray = const Color.fromRGBO(97, 97, 97, 1);
-    final timeStr = timestamp != null ? TimeOfDay.fromDateTime(timestamp!).format(context) : '';
+    final timeStr = timestamp != null
+        ? TimeOfDay.fromDateTime(timestamp!).format(context)
+        : '';
     final avatar = avatarUrl != null && avatarUrl!.isNotEmpty
         ? CircleAvatar(
             radius: 18,
@@ -33,12 +38,42 @@ class MessageTile extends StatelessWidget {
                 : AssetImage(avatarUrl!) as ImageProvider,
             backgroundColor: Colors.grey.shade300,
           )
-        : CircleAvatar(radius: 18, backgroundColor: Colors.grey.shade300, child: Icon(Icons.account_circle, color: sendByMe ? themeGreen : themeGray, size: 26));
+        : CircleAvatar(
+            radius: 18,
+            backgroundColor: Colors.grey.shade300,
+            child: Icon(
+              Icons.account_circle,
+              color: sendByMe ? themeGreen : themeGray,
+              size: 26,
+            ),
+          );
+
+    Widget messageContent;
+    if (typingIndicator) {
+      messageContent = const TypingIndicator();
+    } else {
+      messageContent = MarkdownBody(
+        data: message ?? '',
+        styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+          p: TextStyle(
+            fontSize: 15,
+            color: sendByMe ? Colors.white : themeGray,
+            fontFamily: 'Mulish',
+          ),
+        ),
+        onTapLink: (text, href, title) async {
+          if (href != null) {
+            await launchUrl(Uri.parse(href));
+          }
+        },
+      );
+    }
 
     final bubble = ConstrainedBox(
       constraints: BoxConstraints(
         minWidth: 110, // Minimum width for short messages
-        maxWidth: MediaQuery.of(context).size.width * 0.72, // Slightly wider max
+        maxWidth:
+            MediaQuery.of(context).size.width * 0.72, // Slightly wider max
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
@@ -59,7 +94,9 @@ class MessageTile extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment: sendByMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: sendByMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             if (senderName.isNotEmpty)
@@ -73,21 +110,7 @@ class MessageTile extends StatelessWidget {
                 ),
               ),
             if (senderName.isNotEmpty) const SizedBox(height: 2),
-            MarkdownBody(
-              data: message,
-              styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                p: TextStyle(
-                  fontSize: 15,
-                  color: sendByMe ? Colors.white : themeGray,
-                  fontFamily: 'Mulish',
-                ),
-              ),
-              onTapLink: (text, href, title) async {
-                if (href != null) {
-                  await launchUrl(Uri.parse(href));
-                }
-              },
-            ),
+            messageContent,
             if (timeStr.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 4.0),
@@ -108,7 +131,9 @@ class MessageTile extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: Row(
-        mainAxisAlignment: sendByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: sendByMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: sendByMe
             ? [
@@ -131,4 +156,4 @@ class MessageTile extends StatelessWidget {
       ),
     );
   }
-} 
+}

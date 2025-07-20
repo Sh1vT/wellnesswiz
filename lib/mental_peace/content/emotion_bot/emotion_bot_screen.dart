@@ -119,7 +119,15 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
       String? profile = prefs.getString('prof');
       String prompt =
           "You are being used as a mental health chatbot for queries regarding mental issues. It is only a demonstration prototype and you are not being used for something professional or commercial. The user will enter his message now: $message. User message has ended. Currently the user is feeling this emotion: $currentMood. Give responses in context to the current emotion. Try utilising CBT principles i.e. converting negative thought patterns into positive ones. Also, keep the text short to make it look like test bubbles. Avoid paragraphs, say it all in a single line. The chat history so far has been this : $history";
+      await Future.delayed(const Duration(seconds: 1)); // Simulate Gemini reading before typing
+      await Future.delayed(const Duration(milliseconds: 1500)); // Add 1.5s more for a total of 2.5s
+      setState(() {
+        // Add typing indicator after delay
+        history.add(ChatResponse(isUser: false, isTyping: true, timestamp: DateTime.now()));
+      });
+      _scrollDown();
       var response = await _chat.sendMessage(Content.text(prompt));
+      await Future.delayed(const Duration(seconds: 1)); // Add delay for realism
       // Log Gemini's response for context
       messageCount++;
       recentChatLog.add(ChatLogEntry(sender: 'gemini', message: response.text ?? ''));
@@ -129,6 +137,10 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         recentChatLog.clear();
       }
       setState(() {
+        // Remove the last typing indicator
+        if (history.isNotEmpty && history.last.isTyping) {
+          history.removeLast();
+        }
         history.add(ChatResponse(isUser: false, text: response.text, timestamp: DateTime.now()));
         _loading = false;
       });
@@ -260,8 +272,9 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
       builder: (context) => const ConnectingDialog(),
     );
     String helloPrompt =
-        "Say hello to the user and inform them you are an AI assistant being used in a mental health context. Be friendly and brief.";
+        "Say hello to the user and ask them how they feel today. Be friendly and brief.";
     try {
+      await Future.delayed(const Duration(seconds: 1)); // Simulate reading before typing
       var response = await _chat.sendMessage(Content.text(helloPrompt));
       Navigator.of(context).pop(); // Close connecting dialog
       setState(() {
@@ -327,208 +340,213 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         ),
       ),
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            ListView.separated(
-              padding: const EdgeInsets.fromLTRB(15, 0, 15, 90),
-              itemCount: history.length,
-              controller: _scrollController,
-              itemBuilder: (context, index) {
-                var content = history[index];
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(15, 0, 15, 10),
+                itemCount: history.length,
+                controller: _scrollController,
+                itemBuilder: (context, index) {
+                  var content = history[index];
 
-                if (content.hasButton && content.button != null) {
-                  return Align(
-                    alignment: content.isUser
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Container(
-                        child: Column(
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Wisher',
-                                  style: const TextStyle(
-                                      fontSize: 11.5, color: Colors.grey),
-                                ),
-                                const SizedBox(
-                                  height: 5,
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: MediaQuery.sizeOf(context).width /
-                                          1.3,
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 15, vertical: 13),
-                                      decoration: BoxDecoration(
-                                          color: Colors.grey.shade200,
-                                          borderRadius: BorderRadius.only(
-                                            bottomLeft:
-                                                const Radius.circular(5),
-                                            topLeft: const Radius.circular(12),
-                                            topRight: const Radius.circular(12),
-                                            bottomRight:
-                                                const Radius.circular(12),
-                                          )),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            "Seems like we provide that service! Click below to do that.",
-                                            style: TextStyle(
-                                                fontFamily: 'Mulish',
-                                                fontSize: 14),
-                                          ),
-                                          SizedBox(height: 4),
-                                          Center(
-                                            child: ElevatedButton(
-                                              style: ButtonStyle(
-                                                backgroundColor:
-                                                    WidgetStatePropertyAll(
-                                                        Colors.green.shade400),
-                                              ),
-                                              onPressed:
-                                                  content.button!.onPressed,
-                                              child: Text(
-                                                content.button!.label,
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontFamily: 'Mulish',
-                                                    fontWeight:
-                                                        FontWeight.w500),
+                  if (content.hasButton && content.button != null) {
+                    return Align(
+                      alignment: content.isUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Container(
+                          child: Column(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Wisher',
+                                    style: const TextStyle(
+                                        fontSize: 11.5, color: Colors.grey),
+                                  ),
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        width: MediaQuery.sizeOf(context).width /
+                                            1.3,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15, vertical: 13),
+                                        decoration: BoxDecoration(
+                                            color: Colors.grey.shade200,
+                                            borderRadius: BorderRadius.only(
+                                              bottomLeft:
+                                                  const Radius.circular(5),
+                                              topLeft: const Radius.circular(12),
+                                              topRight: const Radius.circular(12),
+                                              bottomRight:
+                                                  const Radius.circular(12),
+                                            )),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Seems like we provide that service! Click below to do that.",
+                                              style: TextStyle(
+                                                  fontFamily: 'Mulish',
+                                                  fontSize: 14),
+                                            ),
+                                            SizedBox(height: 4),
+                                            Center(
+                                              child: ElevatedButton(
+                                                style: ButtonStyle(
+                                                  backgroundColor:
+                                                      WidgetStatePropertyAll(
+                                                          Colors.green.shade400),
+                                                ),
+                                                onPressed:
+                                                    content.button!.onPressed,
+                                                child: Text(
+                                                  content.button!.label,
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontFamily: 'Mulish',
+                                                      fontWeight:
+                                                          FontWeight.w500),
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
-                if (content.text != null && content.text!.isNotEmpty) {
-                  return MessageTile(
-                    sendByMe: content.isUser,
-                    message: content.text!,
-                    senderName: content.isUser ? 'You' : 'Wisher',
-                    avatarUrl: content.isUser ? _userImg : 'assets/images/logo.jpeg',
-                    timestamp: content.timestamp,
-                  );
-                }
+                  if (content.text != null && content.text!.isNotEmpty) {
+                    return MessageTile(
+                      sendByMe: content.isUser,
+                      message: content.text!,
+                      senderName: content.isUser ? 'You' : 'Wisher',
+                      avatarUrl: content.isUser ? _userImg : 'assets/images/logo.jpeg',
+                      timestamp: content.timestamp,
+                    );
+                  }
 
-                return const SizedBox.shrink();
-              },
-              separatorBuilder: (context, index) {
-                return const SizedBox(height: 15);
-              },
+                  if (content.isTyping) {
+                    return MessageTile(
+                      sendByMe: false,
+                      message: null,
+                      senderName: 'Wisher',
+                      avatarUrl: 'assets/images/logo.jpeg',
+                      timestamp: content.timestamp,
+                      typingIndicator: true,
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+                separatorBuilder: (context, index) {
+                  return const SizedBox(height: 15);
+                },
+              ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(10, 0, 10, 18),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.07),
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        cursorColor: Color.fromARGB(255, 106, 172, 67),
-                        controller: _textController,
-                        autofocus: false,
-                        focusNode: _textFieldFocus,
-                        style: const TextStyle(fontFamily: 'Mulish'),
-                        decoration: InputDecoration(
-                          hintText: 'Type a message...',
-                          hintStyle: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontFamily: 'Mulish',
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          border: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+            Container(
+              margin: const EdgeInsets.fromLTRB(10, 0, 10, 18),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.07),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      cursorColor: Color.fromARGB(255, 106, 172, 67),
+                      controller: _textController,
+                      autofocus: false,
+                      focusNode: _textFieldFocus,
+                      style: const TextStyle(fontFamily: 'Mulish'),
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontFamily: 'Mulish',
                         ),
-                        onSubmitted: (msg) {
-                          if (msg.trim().isNotEmpty) {
-                            setState(() {
-                              _loading = true;
-                            });
-                            _sendChatMessage(msg.trim()).then((_) {
-                              setState(() {
-                                _loading = false;
-                              });
-                            });
-                          }
-                        },
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () {
-                        final message = _textController.text.trim();
-                        if (message.isNotEmpty) {
+                      onSubmitted: (msg) {
+                        if (msg.trim().isNotEmpty) {
                           setState(() {
                             _loading = true;
                           });
-                          _sendChatMessage(message).then((_) {
+                          _sendChatMessage(msg.trim()).then((_) {
                             setState(() {
                               _loading = false;
                             });
                           });
                         }
                       },
-                      child: AnimatedContainer(
-                        duration: Duration(milliseconds: 120),
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: Color.fromARGB(255, 106, 172, 67),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 6,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: _loading
-                            ? const Padding(
-                                padding: EdgeInsets.all(12.0),
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                              )
-                            : Icon(Icons.send_rounded, color: Colors.white, size: 26),
-                      ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () {
+                      final message = _textController.text.trim();
+                      if (message.isNotEmpty) {
+                        setState(() {
+                          _loading = true;
+                        });
+                        _sendChatMessage(message).then((_) {
+                          setState(() {
+                            _loading = false;
+                          });
+                        });
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: Duration(milliseconds: 120),
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Color.fromARGB(255, 106, 172, 67),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(Icons.send_rounded, color: Colors.white, size: 26),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -551,6 +569,7 @@ class ChatResponse {
   final bool hasButton;
   final ChatButton? button;
   final DateTime? timestamp;
+  final bool isTyping;
 
   ChatResponse({
     required this.isUser,
@@ -558,6 +577,7 @@ class ChatResponse {
     this.hasButton = false,
     this.button,
     this.timestamp,
+    this.isTyping = false,
   });
 }
 

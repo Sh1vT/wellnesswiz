@@ -875,15 +875,21 @@ If there is no mention of a medication or dosage, respond with \"none.\"
       String? profile = prefs.getString('prof');
       String prompt =
           "You are being used as a medical chatbot for health related queries. It is only a demonstration prototype and you are not being used for commercial purposes. But don't mention that youre some demo or prototype as this breaks the flow. Jut act natural. The user will enter his message now: $message. User message has ended. The user can also have a profile section where they may have been asked to avoid or take care of some things. The profile section starts now: $profile. Profile section has ended. Respond naturally to the user as a chatbot.";
+      // Add user message immediately
+      await _addMessage(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
+      await Future.delayed(const Duration(milliseconds: 2500)); // Simulate Gemini reading before typing
+      await _addMessage(ChatResponse(isUser: false, isTyping: true, timestamp: DateTime.now()));
+      _scrollDown();
       var response = await _chat.sendMessage(Content.text(prompt));
-      // print("Response from model: ${response.text}");
-
+      await Future.delayed(const Duration(seconds: 1)); // Add delay for realism
       setState(() {
+        // Remove the last typing indicator
+        if (history.isNotEmpty && history.last.isTyping) {
+          history.removeLast();
+        }
         if (response.text!.toLowerCase().trim() == ("symptom") ||
             response.text!.toLowerCase().trim() == ("symptom.")) {
-          setState(() {
-            symptomprediction = true;
-          });
+          symptomprediction = true;
           _symptomLoop(message);
         } else if (response.text!.toLowerCase().trim() == ("report") ||
             response.text!.toLowerCase().trim() == ("report.")) {
@@ -1112,14 +1118,24 @@ If there is no mention of a medication or dosage, respond with \"none.\"
                 itemBuilder: (context, index) {
                   var content = history[index];
 
-                  // Render divider if text is null
-                  if (content.text == null) {
+                  // Render divider if text == null and not a typing indicator
+                  if (content.text == null && !content.isTyping) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16.0),
                       child: Divider(
                         thickness: 1.5,
                         color: Colors.grey.shade300,
                       ),
+                    );
+                  }
+                  if (content.isTyping) {
+                    return MessageTile(
+                      sendByMe: false,
+                      message: null,
+                      senderName: 'Wizard',
+                      avatarUrl: 'assets/images/logo.jpeg',
+                      timestamp: content.timestamp,
+                      typingIndicator: true,
                     );
                   }
 
@@ -1194,7 +1210,6 @@ If there is no mention of a medication or dosage, respond with \"none.\"
                           final message = _textController.text.trim();
                           if (message.isNotEmpty) {
                             setState(() {
-                              _addMessage(ChatResponse(isUser: true, text: message, timestamp: DateTime.now()));
                               _loading = true;
                             });
                             _sendChatMessage(message).then((_) {
@@ -1219,12 +1234,7 @@ If there is no mention of a medication or dosage, respond with \"none.\"
                               ),
                             ],
                           ),
-                          child: _loading
-                              ? const Padding(
-                                  padding: EdgeInsets.all(12.0),
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              : Icon(Icons.send_rounded, color: Colors.white, size: 26),
+                          child: Icon(Icons.send_rounded, color: Colors.white, size: 26),
                         ),
                       ),
                     ],
@@ -1250,11 +1260,13 @@ class ChatResponse {
   final bool isUser;
   final String? text;
   final DateTime? timestamp;
+  final bool isTyping;
 
   ChatResponse({
     required this.isUser,
     this.text,
     this.timestamp,
+    this.isTyping = false,
   });
 
   Map<String, dynamic> toJson() => {
