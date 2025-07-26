@@ -195,7 +195,7 @@ class _LikeButtonState extends State<_LikeButton> {
       await likeRef.delete();
       await postRef.update({'likeCount': FieldValue.increment(-1)});
     } else {
-      await likeRef.set({'timestamp': FieldValue.serverTimestamp()});
+      await likeRef.set({'timestamp': FieldValue.serverTimestamp(), 'userId': user.uid});
       await postRef.update({'likeCount': FieldValue.increment(1)});
     }
     setState(() {

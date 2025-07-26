@@ -68,7 +68,7 @@ class ChatroomChip extends StatelessWidget {
                     Icon(Icons.group, size: 15, color: Colors.grey.shade600),
                     SizedBox(width: 3),
                     Text(
-                      '${chatroom.memberCount ?? chatroom.participants.length} members',
+                      '${chatroom.memberCount ?? chatroom.members.length} members',
                       style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontFamily: 'Mulish'),
                     ),
                   ],

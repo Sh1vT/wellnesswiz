@@ -54,7 +54,7 @@ class ThoughtsService {
       nextOccurrence = nextOccurrence.add(Duration(days: 1));
     }
     Duration initialDelay = nextOccurrence.difference(now);
-    print('[DEBUG] Scheduling thoughtTask with inputData: {title: Positive Thought, description: ${getRandomThought()}, hour: $hour, minute: $minute}');
+    //print('[DEBUG] Scheduling thoughtTask with inputData: {title: Positive Thought, description: ${getRandomThought()}, hour: $hour, minute: $minute}');
     await Workmanager().registerOneOffTask(
       'daily_thought_task_${nextOccurrence.millisecondsSinceEpoch}',
       'thoughtTask',

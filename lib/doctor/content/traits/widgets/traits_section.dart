@@ -26,23 +26,18 @@ class _TraitsSectionState extends State<TraitsSection> {
   void _populateProfile() async {
     final pref = await SharedPreferences.getInstance();
     String prefval = pref.getString('prof') ?? "";
-    print('DEBUG TRAITS: Raw prof value: "$prefval"');
     if (prefval.isEmpty || prefval == "{}") {
-      print('DEBUG TRAITS: Profile is empty, setting emptyNow = true');
       setState(() {
         emptyNow = true;
       });
     } else {
       try {
         final decoded = jsonDecode(prefval);
-        print('DEBUG TRAITS: Decoded profile: $decoded');
         setState(() {
           profileMap = Map<String, String>.from(decoded);
           emptyNow = false;
         });
-        print('DEBUG TRAITS: Profile map set: $profileMap');
       } catch (e) {
-        print('DEBUG TRAITS: Error decoding profile: $e');
         setState(() {
           emptyNow = true;
         });

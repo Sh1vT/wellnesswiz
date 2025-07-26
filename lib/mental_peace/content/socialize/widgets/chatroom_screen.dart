@@ -129,6 +129,10 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
         'message': message,
         'timestamp': FieldValue.serverTimestamp(),
       });
+      // Add user to members array after sending a message
+      await _firestore.collection('chatrooms').doc(widget.roomId).update({
+        'members': FieldValue.arrayUnion([_auth.currentUser?.uid]),
+      });
       setState(() {
         _loading = false;
       });

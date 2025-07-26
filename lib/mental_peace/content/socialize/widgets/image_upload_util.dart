@@ -23,7 +23,7 @@ Future<String?> pickAndUploadImage() async {
       final data = json.decode(resStr);
       return data['secure_url'];
     } else {
-      print('Cloudinary upload failed: \\${response.statusCode}');
+      //print('Cloudinary upload failed: \\${response.statusCode}');
       return null;
     }
   }

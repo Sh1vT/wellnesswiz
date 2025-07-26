@@ -210,7 +210,7 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
     // Update the map and save
     allData[currentDate] = dayData;
     await prefs.setString('emotion_monitor_data', jsonEncode(allData));
-    print('[EmotionBot] Updated emotion_monitor_data: $allData');
+    //print('[EmotionBot] Updated emotion_monitor_data: $allData');
   }
 
   @override

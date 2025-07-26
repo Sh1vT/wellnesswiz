@@ -289,7 +289,6 @@ class _BotScreenState extends State<BotScreen> {
   // }
 
   Future<void> _extractAndSaveTrait(String message) async {
-    print('DEBUG: Extracting traits from message: "$message"');
     final traitPatterns = [
       RegExp(r"\bI am [^.?!]*[.?!]?", caseSensitive: false),
       RegExp(r"\bI have [^.?!]*[.?!]?", caseSensitive: false),
@@ -303,32 +302,21 @@ class _BotScreenState extends State<BotScreen> {
         traits.add(match.group(0)!.trim());
       }
     }
-    print('DEBUG: Found traits: $traits');
-    if (traits.isEmpty) {
-      print('DEBUG: No traits found, returning early');
-      return;
-    }
+    if (traits.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
     String profRaw = prefs.getString('prof') ?? '{}';
-    print('DEBUG: Current prof raw: $profRaw');
     Map<String, String> profileMap = {};
     try {
       profileMap = Map<String, String>.from(jsonDecode(profRaw));
-      print('DEBUG: Current profile map: $profileMap');
     } catch (e) {
-      print('DEBUG: Error parsing prof: $e');
+      // Handle parsing error silently
     }
     final now = DateTime.now();
     final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
-    print('DEBUG: Using timestamp: $timestamp');
     for (final trait in traits) {
       profileMap[timestamp] = trait;
-      print('DEBUG: Added trait "$trait" with key "$timestamp"');
     }
-    final newProfRaw = jsonEncode(profileMap);
-    print('DEBUG: New prof raw: $newProfRaw');
-    await prefs.setString('prof', newProfRaw);
-    print('DEBUG: Saved to SharedPreferences');
+    await prefs.setString('prof', jsonEncode(profileMap));
   }
 
   Future<void> _sendChatMessage(String message) async {

@@ -263,7 +263,7 @@ class _QuickAccessPageState extends ConsumerState<QuickAccessPage> {
     if (selectedTime != null) {
       final int hour = selectedTime.hour;
       final int minute = selectedTime.minute;
-      print('[DEBUG] Picked time for positivity: $hour:$minute');
+      //print('[DEBUG] Picked time for positivity: $hour:$minute');
       // final ThoughtsService _thoughtsService = ThoughtsService(); // Removed
       // await _thoughtsService.scheduleDailyThoughtNotification(hour, minute); // Removed
       ScaffoldMessenger.of(context).showSnackBar(

@@ -50,6 +50,6 @@ Future<void> initializeAppStartup() async {
       }));
     }
   } catch (e) {
-    print('Error fetching user location or hospitals: $e');
+    //print('Error fetching user location or hospitals: $e');
   }
 } 

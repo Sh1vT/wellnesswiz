@@ -34,7 +34,7 @@ class _SocialSectionState extends State<SocialSection> {
     }).toList();
     setState(() {
       popularChatrooms = List<ChatroomModel>.from(allRooms);
-      joinedChatrooms = allRooms.where((room) => room.participants.contains(userId)).toList();
+      joinedChatrooms = allRooms.where((room) => room.members.contains(userId)).toList();
       popularChatrooms.sort((a, b) => b.popularity.compareTo(a.popularity));
       if (popularChatrooms.length > 10) popularChatrooms = popularChatrooms.take(10).toList();
     });

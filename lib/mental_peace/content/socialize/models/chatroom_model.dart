@@ -1,7 +1,7 @@
 class ChatroomModel {
   final String id;
   final String name;
-  final List<String> participants;
+  final List<String> members;
   final int popularity;
   final String imageUrl;
   final int memberCount;
@@ -12,7 +12,7 @@ class ChatroomModel {
   ChatroomModel({
     required this.id,
     required this.name,
-    required this.participants,
+    required this.members,
     required this.popularity,
     required this.imageUrl,
     required this.memberCount,
@@ -25,7 +25,7 @@ class ChatroomModel {
     return ChatroomModel(
       id: id,
       name: data['name'] ?? data['topic'] ?? '',
-      participants: List<String>.from(data['members'] ?? data['participants'] ?? []),
+      members: List<String>.from(data['members'] ?? []),
       popularity: data['popularity'] ?? 0,
       imageUrl: data['imageUrl'] ?? '',
       memberCount: data['memberCount'] ?? (data['members']?.length ?? 0),

@@ -36,7 +36,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
   @override
   void initState() {
-    print("exercisepage");
+    //print("exercisepage");
     super.initState();
     _audioPlayer = AudioPlayer();
     _playMusic();
@@ -124,9 +124,9 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         final random = Random();
         final randomIndex = random.nextInt(cachedMusics.length);
         musicUrl = cachedMusics[randomIndex].url;
-        print(
-          'Playing random music track: ${randomIndex + 1}/${cachedMusics.length}: ${cachedMusics[randomIndex].id}',
-        );
+        //print(
+          // 'Playing random music track: ${randomIndex + 1}/${cachedMusics.length}: ${cachedMusics[randomIndex].id}',
+        // );
       }
 
       if (ExerciseMusicService.isRemoteMusic(musicUrl)) {
@@ -147,16 +147,16 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
       // Start playing the audio
       await _audioPlayer.resume();
-      print('Audio started playing');
+      //print('Audio started playing');
     } catch (e) {
-      print('Error loading audio: $e');
+      //print('Error loading audio: $e');
       // Final fallback
       try {
         await _audioPlayer.setSource(AssetSource('music/1.mp3'));
         await _audioPlayer.resume();
-        print('Fallback audio started playing');
+        //print('Fallback audio started playing');
       } catch (e) {
-        print('Error loading fallback audio: $e');
+        //print('Error loading fallback audio: $e');
       }
     }
   }

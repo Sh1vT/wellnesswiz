@@ -51,25 +51,25 @@ class _ReminderPageState extends State<ReminderPage> {
 
   Future<void> _addReminder(
       String title, String description, DateTime scheduledTime) async {
-    print('[DEBUG] _addReminder called with title: $title, description: $description, scheduledTime: $scheduledTime');
+    //print('[DEBUG] _addReminder called with title: $title, description: $description, scheduledTime: $scheduledTime');
     try {
       await _reminderLogic.addReminder(
           widget.userId, title, description, scheduledTime);
       final delay = scheduledTime.difference(DateTime.now()).inSeconds;
-      print('[DEBUG] Calculated delay for WorkManager: $delay seconds');
+      //print('[DEBUG] Calculated delay for WorkManager: $delay seconds');
       if (delay > 0) {
         await workmanager_fallback.WorkManagerNotificationFallbackTest().scheduleWorkManagerNotification(
           delay,
           title: title,
           body: description,
         );
-        print('[DEBUG] WorkManager notification scheduled');
+        //print('[DEBUG] WorkManager notification scheduled');
       } else {
-        print('[DEBUG] Delay not positive, notification not scheduled');
+        //print('[DEBUG] Delay not positive, notification not scheduled');
       }
       _fetchReminders();
     } catch (e) {
-      print('[DEBUG] Error in _addReminder: $e');
+      //print('[DEBUG] Error in _addReminder: $e');
       // Show a generic error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to add reminder: \\${e.toString()}')),

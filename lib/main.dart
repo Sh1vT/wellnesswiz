@@ -22,7 +22,7 @@ final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 Future<void> clearEmotionMonitorData() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.remove('emotion_monitor_data');
-  print('[Main] Cleared emotion_monitor_data from SharedPreferences');
+  //print('[Main] Cleared emotion_monitor_data from SharedPreferences');
 }
 
 void main() async {
@@ -31,15 +31,15 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  print('main.dart: Firebase.apps.length = ${Firebase.apps.length}');
+  //print('main.dart: Firebase.apps.length = ${Firebase.apps.length}');
   if (Firebase.apps.isEmpty) {
-    print('main.dart: Initializing Firebase');
+    //print('main.dart: Initializing Firebase');
     await Firebase.initializeApp(
       // options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('main.dart: Firebase initialized');
+    //print('main.dart: Firebase initialized');
   } else {
-    print('main.dart: Firebase already initialized');
+    //print('main.dart: Firebase already initialized');
   }
 
   tz.initializeTimeZones();
@@ -108,17 +108,17 @@ class _MyAppState extends ConsumerState<MyApp> {
   Future<void> _checkAuthAndOnboarding() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      print('DEBUG: Current user:  [38;5;10m [1m [4m [3m [9m${user?.uid} [0m');
+      //print('DEBUG: Current user:  [38;5;10m [1m [4m [3m [9m${user?.uid} [0m');
       
       if (user != null) {
         // User is logged in - check if onboarding is complete in SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         final onboardingDone = prefs.getBool('onboardingCompleted') ?? false;
-        print('DEBUG: SharedPreferences onboarding status: $onboardingDone');
+        //print('DEBUG: SharedPreferences onboarding status: $onboardingDone');
         
         if (onboardingDone) {
           // Onboarding complete - user can go directly to app
-          print('DEBUG: Onboarding complete, going to app directly');
+          //print('DEBUG: Onboarding complete, going to app directly');
           _user = user;
           _onboardingComplete = true;
           await initializeAppStartup();
@@ -126,19 +126,19 @@ class _MyAppState extends ConsumerState<MyApp> {
           await ref.read(userInfoProvider.notifier).loadUserInfo();
         } else {
           // User logged in but onboarding not complete - show onboarding
-          print('DEBUG: Onboarding not complete, showing onboarding');
+          //print('DEBUG: Onboarding not complete, showing onboarding');
           _user = user;
           _onboardingComplete = false;
         }
       } else {
         // No user logged in - show login screen, then onboarding
-        print('DEBUG: No user logged in, showing login screen');
+        //print('DEBUG: No user logged in, showing login screen');
         _user = null;
         _onboardingComplete = false;
       }
       // REMOVE: await UserInfoCache.getUserInfo();
     } catch (e) {
-      print('DEBUG: Error in _checkAuthAndOnboarding: $e');
+      //print('DEBUG: Error in _checkAuthAndOnboarding: $e');
       // If any error, default to login flow
       _user = null;
       _onboardingComplete = false;

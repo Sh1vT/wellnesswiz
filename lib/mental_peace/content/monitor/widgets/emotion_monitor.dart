@@ -28,10 +28,10 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
   Future<void> _loadData() async {
     _prefs = await SharedPreferences.getInstance();
     final raw = _prefs.getString(monitorKey);
-    print('[EmotionMonitor] Raw data for key $monitorKey: $raw');
+    //print('[EmotionMonitor] Raw data for key $monitorKey: $raw');
     setState(() {
       allData = _getAllEmotionData();
-      print('[EmotionMonitor] Parsed allData: $allData');
+      //print('[EmotionMonitor] Parsed allData: $allData');
     });
   }
 
@@ -42,7 +42,7 @@ class _EmotionMonitorState extends State<EmotionMonitor> {
       final decoded = jsonDecode(jsonString) as Map<String, dynamic>;
       return decoded.map((k, v) => MapEntry(k, Map<String, int>.from(v)));
     } catch (e) {
-      print('Error decoding emotion monitor data: $e');
+      //print('Error decoding emotion monitor data: $e');
       return {};
     }
   }

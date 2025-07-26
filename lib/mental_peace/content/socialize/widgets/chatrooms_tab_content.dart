@@ -184,7 +184,7 @@ class ChatroomsTabContent extends StatelessWidget {
           }).toList();
           final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
           final popularChatrooms = List<ChatroomModel>.from(allRooms);
-          final joinedChatrooms = allRooms.where((room) => room.participants.contains(userId)).toList();
+          final joinedChatrooms = allRooms.where((room) => room.members.contains(userId)).toList();
           popularChatrooms.sort((a, b) => b.popularity.compareTo(a.popularity));
           if (popularChatrooms.length > 10) popularChatrooms.removeRange(10, popularChatrooms.length);
           children.add(
@@ -335,7 +335,7 @@ class ChatroomsTabContent extends StatelessWidget {
                                       'name': name,
                                       'theme': theme,
                                       'createdBy': user.uid,
-                                      'participants': [user.uid],
+                                      'members': [user.uid],
                                       'memberCount': 1,
                                       'popularity': 0,
                                       'imageUrl': finalImageUrl,
