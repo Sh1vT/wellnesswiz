@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wellwiz/utils/message_tile.dart';
+import '../../../../utils/profanity_filter_util.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   final String roomId;
@@ -109,6 +110,17 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   Future<void> _sendMessage(String message) async {
     if (message.trim().isEmpty) {
+      return;
+    }
+
+    // Check for profanity
+    if (ProfanityFilterUtil.hasProfanity(message)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ProfanityFilterUtil.getProfanityMessage()),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 

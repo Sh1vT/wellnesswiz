@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/post_model.dart';
 import 'image_upload_util.dart';
+import '../../../../utils/profanity_filter_util.dart';
 
 class CreatePostWidget extends StatefulWidget {
   const CreatePostWidget({super.key});
@@ -30,6 +31,21 @@ class _CreatePostWidgetState extends State<CreatePostWidget> {
   Future<void> _createPost() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    
+    final content = _contentController.text.trim();
+    if (content.isEmpty) return;
+    
+    // Check for profanity
+    if (ProfanityFilterUtil.hasProfanity(content)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(ProfanityFilterUtil.getProfanityMessage()),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
     setState(() { _uploading = true; _error = null; });
     try {
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
@@ -39,7 +55,7 @@ class _CreatePostWidgetState extends State<CreatePostWidget> {
         authorHandle: userDoc['handle'] ?? '',
         authorName: userDoc['name'] ?? '',
         authorPhoto: user.photoURL ?? '',
-        content: _contentController.text.trim(),
+        content: content,
         imageUrl: _imageUrl ?? '',
         timestamp: Timestamp.now(),
         likeCount: 0,

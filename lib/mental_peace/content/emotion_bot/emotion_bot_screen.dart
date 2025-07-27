@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:speech_to_text/speech_to_text.dart';
 import 'package:wellwiz/secrets.dart';
 import 'package:wellwiz/utils/message_tile.dart';
 import 'package:wellwiz/utils/color_palette.dart';
@@ -37,8 +36,6 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
   bool _loading = false;
   static const _apiKey = geminikey; // TODO: Replace with your actual key or import from secrets
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final SpeechToText _speechToText = SpeechToText();
-  bool _speechEnabled = false;
   late DateTime _startTime;
   late SharedPreferences _prefs;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -163,11 +160,6 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
     });
   }
 
-  void _initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
-    setState(() {});
-  }
-
   Future<void> _initializeSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -217,7 +209,6 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
   void initState() {
     currentMood = "Neutral";
     moodSegments = [MoodSegment(mood: currentMood, startTime: DateTime.now())];
-    _initSpeech();
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _showDisclaimerDialog());
     _model = GenerativeModel(

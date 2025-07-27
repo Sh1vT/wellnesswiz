@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:wellwiz/secrets.dart';
+import '../../../../utils/profanity_filter_util.dart';
 
 // Shimmer card for loading state
 class _ShimmerChatroomCard extends StatefulWidget {
@@ -325,7 +326,30 @@ class ChatroomsTabContent extends StatelessWidget {
                                   final name = nameController.text.trim();
                                   final theme = themeController.text.trim();
                                   final user = FirebaseAuth.instance.currentUser;
+                                  
                                   if (name.isNotEmpty && user != null) {
+                                    // Check for profanity in room name
+                                    if (ProfanityFilterUtil.hasProfanity(name)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Room name contains inappropriate language. Please revise and try again.'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    
+                                    // Check for profanity in theme (if provided)
+                                    if (theme.isNotEmpty && ProfanityFilterUtil.hasProfanity(theme)) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Theme contains inappropriate language. Please revise and try again.'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    
                                     String finalImageUrl = imageUrl ?? '';
                                     if (imageFile != null && imageUrl == null) {
                                       await uploadImage();

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wellwiz/mental_peace/content/socialize/widgets/chatroom_screen.dart';
+import '../../../../utils/profanity_filter_util.dart';
 
 class ChatRoomSelectionScreen extends StatefulWidget {
   const ChatRoomSelectionScreen({super.key});
@@ -58,6 +59,17 @@ class _ChatRoomSelectionScreenState extends State<ChatRoomSelectionScreen> {
             onPressed: () async {
               String topic = topicController.text.trim();
               if (topic.isNotEmpty) {
+                // Check for profanity in topic
+                if (ProfanityFilterUtil.hasProfanity(topic)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Topic contains inappropriate language. Please revise and try again.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+                
                 DocumentReference newRoom = await FirebaseFirestore.instance
                     .collection('chat_rooms')
                     .add({

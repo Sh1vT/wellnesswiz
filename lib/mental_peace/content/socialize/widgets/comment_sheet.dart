@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/comment_model.dart';
+import '../../../../utils/profanity_filter_util.dart';
 
 class CommentSheet extends StatefulWidget {
   final String postId;
@@ -15,10 +16,30 @@ class CommentSheet extends StatefulWidget {
 class _CommentSheetState extends State<CommentSheet> {
   final TextEditingController _controller = TextEditingController();
   bool _sending = false;
+  String? _errorMessage; // Add this for error display
 
   Future<void> _addComment() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || _controller.text.trim().isEmpty) return;
+    
+    final content = _controller.text.trim();
+    
+    // Check for profanity
+    if (ProfanityFilterUtil.hasProfanity(content)) {
+      setState(() {
+        _errorMessage = ProfanityFilterUtil.getProfanityMessage();
+      });
+      // Clear error after 3 seconds
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _errorMessage = null;
+          });
+        }
+      });
+      return;
+    }
+    
     setState(() => _sending = true);
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
     final comment = CommentModel(
@@ -27,7 +48,7 @@ class _CommentSheetState extends State<CommentSheet> {
       authorId: user.uid,
       authorName: userDoc['name'] ?? '',
       authorPhoto: user.photoURL ?? '',
-      content: _controller.text.trim(),
+      content: content,
       timestamp: Timestamp.now(),
     );
     await FirebaseFirestore.instance
@@ -62,6 +83,26 @@ class _CommentSheetState extends State<CommentSheet> {
             ),
             const Text('Comments', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 8),
+            // Error message display
+            if (_errorMessage != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade300),
+                ),
+                child: Text(
+                  _errorMessage!,
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontFamily: 'Mulish',
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
