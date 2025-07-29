@@ -92,7 +92,7 @@ class _ReportHistoryDialogState extends State<ReportHistoryDialog> {
         child: _scans.isEmpty
             ? const Padding(
                 padding: EdgeInsets.all(24.0),
-                child: Text('No scans for this report type.'),
+                child: Text('No snaps for this type.'),
               )
             : ListView.separated(
                 shrinkWrap: true,
@@ -108,15 +108,15 @@ class _ReportHistoryDialogState extends State<ReportHistoryDialog> {
                     subtitle: Text('${scan.metrics.length} metrics'),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
-                      tooltip: 'Delete this scan',
+                      tooltip: 'Delete this snap',
                       onPressed: _deleting
                           ? null
                           : () async {
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (context) => AlertDialog(
-                                  title: const Text('Delete Scan'),
-                                  content: const Text('Delete this scan?'),
+                                  title: const Text('Delete Snap'),
+                                  content: const Text('Delete this snap?'),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
@@ -167,9 +167,9 @@ class _ReportHistoryDialogState extends State<ReportHistoryDialog> {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Delete All Reports'),
+                        title: const Text('Delete All Snaps'),
                         content: const Text(
-                          'Are you sure you want to delete all scans for this report type?',
+                          'Are you sure you want to delete all snaps for this type?',
                         ),
                         actions: [
                           TextButton(

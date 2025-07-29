@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:wellwiz/doctor/content/docs/widgets/checkups_title.dart';
 import 'package:wellwiz/doctor/content/docs/widgets/doctors_section.dart';
 import 'package:wellwiz/doctor/content/metrics/widgets/health_metrics_section.dart';
-// import 'package:wellwiz/doctor/content/mhps/widgets/mhps_section.dart';
 import 'package:wellwiz/doctor/content/prescriptions/widgets/prescriptions_section.dart';
 import 'package:wellwiz/doctor/content/traits/widgets/traits_section.dart';
 import 'package:wellwiz/utils/hospital_utils.dart';
@@ -33,7 +32,7 @@ class _DoctorPageState extends State<DoctorPage> {
   Widget build(BuildContext context) {
     return ListView(
       children: [
-        const CheckupsTitle(),
+        const HaveALookTitle(),
         const SizedBox(height: 20),
         NearbyHospitalsSection(
           within20km: DoctorPage.hospitals20km,
@@ -42,11 +41,11 @@ class _DoctorPageState extends State<DoctorPage> {
         ),
         // const MhpsSection(), // Commented out as requested
         // const SizedBox(height: 20),
-        const HealthMetricsSection(),
+        const MetricsSection(),
         const SizedBox(height: 20),
         const PrescriptionsSection(),
         const SizedBox(height: 20),
-        const TraitsSection(),
+        TraitsSection(),
         const SizedBox(height: 20),
       ],
     );

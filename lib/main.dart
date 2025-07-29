@@ -68,7 +68,7 @@ void clearOldHealthData() async {
   await pref.remove('prof');
   await pref.remove('contacts');
   await pref.remove('table');
-  Fluttertoast.showToast(msg: "Old health/profile data cleared.");
+  Fluttertoast.showToast(msg: "Old app data cleared.");
 }
 
 class MyApp extends ConsumerStatefulWidget {

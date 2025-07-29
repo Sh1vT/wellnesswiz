@@ -16,7 +16,7 @@ class ImagePickerDialog extends StatelessWidget {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       title: const Text(
-        "Upload Medical Report",
+        "Upload a snap",
         style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold, color: ColorPalette.blackDarker),
       ),
       content: SingleChildScrollView(

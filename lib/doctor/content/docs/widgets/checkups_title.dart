@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:wellwiz/utils/color_palette.dart';
 
-class CheckupsTitle extends StatelessWidget {
-  const CheckupsTitle({super.key});
+class HaveALookTitle extends StatelessWidget {
+  const HaveALookTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +12,7 @@ class CheckupsTitle extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            "Check-",
+            "Have",
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontFamily: 'Mulish',
@@ -20,7 +20,7 @@ class CheckupsTitle extends StatelessWidget {
                 color: Color.fromARGB(255, 106, 172, 67)),
           ),
           Text(
-            "Ups",
+            "a look",
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontFamily: 'Mulish',

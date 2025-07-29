@@ -42,7 +42,7 @@ class _AddPrescriptionDialogState extends State<AddPrescriptionDialog> {
       title: Row(
         children: [
           Expanded(
-            child: Text('Add Prescription', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
+            child: Text('Add Tabs', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
           ),
         ],
       ),

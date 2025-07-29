@@ -67,7 +67,7 @@ class BotButton extends StatelessWidget {
                   color: Colors.grey.shade800,
                 ),
                 Text(
-                  'Your personal medical assistant',
+                  'Your personal assistant',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14.0,

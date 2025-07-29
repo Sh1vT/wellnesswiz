@@ -23,8 +23,8 @@ class _ThoughtCardState extends State<ThoughtCard> {
 
   // Keep existing hardcoded thoughts as fallback
   final List<String> fallbackThoughts = [
-    "In the garden of health, every breath is a petal, every heartbeat a bloom.",
-    "Hope is the gentle breeze that carries the fragrance of healing."
+    "Every day is a new opportunity to grow and learn.",
+    "Hope is the gentle breeze that carries the fragrance of new beginnings."
   ];
 
   @override

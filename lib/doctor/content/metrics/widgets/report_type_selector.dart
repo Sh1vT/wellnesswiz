@@ -25,7 +25,7 @@ class ReportTypeSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Select Report Type",
+          "Select Type",
           style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Mulish'),
         ),
         const SizedBox(height: 8),
@@ -68,7 +68,7 @@ class ReportTypeSelector extends StatelessWidget {
             child: TextField(
               onChanged: onCustomChanged,
               decoration: InputDecoration(
-                labelText: "Enter custom report type",
+                labelText: "Enter custom snap type",
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: ColorPalette.green, width: 2),
                   borderRadius: BorderRadius.circular(12),

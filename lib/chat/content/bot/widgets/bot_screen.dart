@@ -130,7 +130,7 @@ class _BotScreenState extends State<BotScreen> {
       builder: (context) => const ConnectingDialog(),
     );
     String helloPrompt =
-        "Say hello to the user and inform them you are an AI assistant being used in a health and wellness context. Be friendly and brief.";
+        "Say hello to the user and inform them you are an AI assistant here to help with general queries. Be friendly and brief.";
     try {
       var response = await _chat.sendMessage(Content.text(helloPrompt));
       Navigator.of(context).pop(); // Close connecting dialog
@@ -187,7 +187,7 @@ class _BotScreenState extends State<BotScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text('Disclaimer', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
         content: Text(
-          'This is just an AI assistant powered by Gemini API. It cannot replace human doctors or medical institutes. Use it as an assistant, not for medical advice.',
+          'This is just an AI assistant powered by Gemini API. It cannot replace professional advice. Use it as an assistant, not for critical decisions.',
           style: TextStyle(fontFamily: 'Mulish'),
         ),
         actions: [

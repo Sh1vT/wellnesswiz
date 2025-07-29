@@ -391,7 +391,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
                         const Icon(Icons.camera_alt, size: 48, color: Color(0xFF7CB518)),
                         const SizedBox(height: 24),
                         const Text(
-                          'Scan Reports Instantly',
+                          'Take snaps Instantly',
                           style: TextStyle(
                             fontFamily: 'Mulish',
                             fontSize: 32,
@@ -402,7 +402,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'WellWiz lets you scan your medical reports directly from the camera and analyze trends. Please allow camera access to use this feature.',
+                          'WellWiz lets you take snaps directly from the camera and analyze trends. Please allow camera access to use this feature.',
                           style: TextStyle(
                             fontFamily: 'Mulish',
                             fontSize: 18,

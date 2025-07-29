@@ -300,7 +300,7 @@ class _PrescriptionsSectionState extends State<PrescriptionsSection> {
           ),
           child: const Center(
             child: Text(
-              'Add some of your meds!',
+              'Add some!',
               style: TextStyle(fontFamily: 'Mulish', fontSize: 15, color: ColorPalette.black),
               textAlign: TextAlign.center,
             ),
@@ -415,7 +415,7 @@ class _PrescriptionsSectionState extends State<PrescriptionsSection> {
         Padding(
           padding: const EdgeInsets.only(left: 20, top: 12, bottom: 0),
           child: Text(
-            'Prescriptions',
+            'Notify',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,

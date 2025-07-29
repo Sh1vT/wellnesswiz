@@ -20,14 +20,14 @@ import 'package:wellwiz/doctor/content/metrics/widgets/metric_trend_dialog.dart'
 import 'package:wellwiz/utils/color_palette.dart';
 import 'report_history_dialog.dart';
 
-class HealthMetricsSection extends StatefulWidget {
-  const HealthMetricsSection({super.key});
+class MetricsSection extends StatefulWidget {
+  const MetricsSection({super.key});
 
   @override
-  State<HealthMetricsSection> createState() => _HealthMetricsSectionState();
+  State<MetricsSection> createState() => _MetricsSectionState();
 }
 
-class _HealthMetricsSectionState extends State<HealthMetricsSection> {
+class _MetricsSectionState extends State<MetricsSection> {
   List<List<dynamic>> tableList = [];
   final bool _isTableExpanded = false;
   late File _image;
@@ -307,7 +307,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
               ),
               const SizedBox(height: 24),
               const Text(
-                "Scanning Report...",
+                "Memorizing...",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
@@ -397,7 +397,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
         ),
         child: const Center(
           child: Text(
-            'Try scanning some reports!',
+            'Take some snaps!',
             style: TextStyle(fontFamily: 'Mulish'),
           ),
         ),
@@ -507,7 +507,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
         if (groupedHistory.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16),
-            child: Text('No scan history yet.'),
+            child: Text('No snap history yet.'),
           );
         }
         // Report type chips
@@ -524,10 +524,10 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
         if (entries.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16),
-            child: Text('No scans for this report type yet.'),
+            child: Text('No snaps for this type yet.'),
           );
         }
-        // Show the latest scan for the selected type
+        // Show the latest snap for the selected type
         final latest = entries.last;
         final metrics = latest.metrics;
         return Column(
@@ -535,7 +535,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
           children: [
             const SizedBox(height: 16),
             const Text(
-              'Select Report Type:',
+              'Select Snap Type:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -564,7 +564,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Latest Scan: ${DateFormat('yyyy-MM-dd – kk:mm').format(latest.timestamp)}',
+              'Latest Snap: ${DateFormat('yyyy-MM-dd – kk:mm').format(latest.timestamp)}',
               style: const TextStyle(fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
@@ -669,7 +669,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 4.0),
                   child: Text(
-                    'Your Reports',
+                    'Your Snaps',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -716,7 +716,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                                   Icon(Icons.camera_alt, color: Colors.white, size: 18),
                                   const SizedBox(width: 6),
                                   Text(
-                                    'Scan',
+                                    'Snap',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -739,7 +739,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                       ),
                       child: const Center(
                         child: Text(
-                          'Try scanning some reports!',
+                          'Try taking some snaps!',
                           style: TextStyle(fontFamily: 'Mulish'),
                         ),
                       ),
@@ -764,7 +764,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                     color: ColorPalette.greenSwatch[50],
                   ),
                   child: const Center(
-                    child: Text('No scans for this report type yet.'),
+                    child: Text('No snaps for this type yet.'),
                   ),
                 );
               }
@@ -799,7 +799,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                                     Icon(Icons.camera_alt, color: Colors.white, size: 18),
                                     const SizedBox(width: 6),
                                     Text(
-                                      'Scan',
+                                      'Snap',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
@@ -871,7 +871,7 @@ class _HealthMetricsSectionState extends State<HealthMetricsSection> {
                                     Row(
                                       children: [
                                         Text(
-                                          "Report",
+                                          "Record",
                                           style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,

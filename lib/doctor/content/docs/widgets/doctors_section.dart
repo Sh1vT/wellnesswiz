@@ -72,7 +72,7 @@ class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
         Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, top: 18, bottom: 0),
           child: Text(
-            'Nearby Hospitals',
+            'Nearby',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: ColorPalette.black, fontFamily: 'Mulish'),
           ),
         ),
@@ -112,7 +112,7 @@ class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
                   itemBuilder: (context, index) => const HospitalCardShimmer(),
                 )
               : hospitals.isEmpty
-                  ? const Center(child: Text('No hospitals found.'))
+                  ? const Center(child: Text('None in this range'))
                   : ListView.builder(
                       scrollDirection: Axis.horizontal,
                       itemCount: hospitals.length,
