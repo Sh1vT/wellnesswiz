@@ -20,7 +20,7 @@ class HaveALookTitle extends StatelessWidget {
                 color: Color.fromARGB(255, 106, 172, 67)),
           ),
           Text(
-            "a look",
+            " a look",
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 fontFamily: 'Mulish',
