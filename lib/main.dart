@@ -167,6 +167,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: SplashScreen(),
       );
     }
