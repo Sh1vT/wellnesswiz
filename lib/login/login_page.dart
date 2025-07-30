@@ -107,6 +107,19 @@ class _LoginScreenState extends State<LoginScreen> {
       // Check if user exists in Firestore and onboarding is complete
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
       // print('[DEBUG] Firestore userDoc.exists: ${userDoc.exists}, data: ${userDoc.data()}');
+      
+      // If user is trying to login (not sign up) and doesn't exist in Firestore, prevent login
+      if (!isSignUp && !userDoc.exists) {
+        // print('[DEBUG] User trying to login but account doesn\'t exist.');
+        await FirebaseAuth.instance.signOut();
+        await GoogleSignIn.instance.signOut();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account not found. Please sign up first.')),
+        );
+        setState(() { _isSigningIn = false; });
+        return;
+      }
+      
       // Prevent duplicate sign up: If in sign up mode and user exists, show error and do not proceed
       if (isSignUp && userDoc.exists && (userDoc.data()?['onboardingCompleted'] == true)) {
         // print('[DEBUG] Duplicate sign up detected.');

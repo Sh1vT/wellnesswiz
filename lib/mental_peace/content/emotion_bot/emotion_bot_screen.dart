@@ -113,7 +113,7 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String? profile = prefs.getString('prof');
       String prompt =
-          "You are being used as a mental health chatbot for queries regarding mental issues. It is only a demonstration prototype and you are not being used for something professional or commercial. The user will enter his message now: $message. User message has ended. Currently the user is feeling this emotion: $currentMood. Give responses in context to the current emotion. Try utilising CBT principles i.e. converting negative thought patterns into positive ones. Also, keep the text short to make it look like test bubbles. Avoid paragraphs, say it all in a single line. The chat history so far has been this : $history";
+          "You are being used as a chatbot for queries regarding daily issues. It is only a demonstration prototype and you are not being used for something professional or commercial. The user will enter his message now: $message. User message has ended. Currently the user is feeling this emotion: $currentMood. Give responses in context to the current emotion. Try utilising positive principles i.e. converting negative thought patterns into positive ones. Also, keep the text short to make it look like test bubbles. Avoid paragraphs, say it all in a single line. The chat history so far has been this : $history";
       await Future.delayed(const Duration(seconds: 1)); // Simulate Gemini reading before typing
       await Future.delayed(const Duration(milliseconds: 1500)); // Add 1.5s more for a total of 2.5s
       setState(() {
@@ -228,7 +228,7 @@ class _EmotionBotScreenState extends State<EmotionBotScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         title: Text('Disclaimer', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
         content: Text(
-          'This is just an AI assistant powered by Gemini API. It cannot replace human doctors or medical institutes. Use it as an assistant, not for medical advice.',
+          'This is just an AI assistant powered by Gemini API. It cannot replace professional advice. Use it as an assistant, not for critical decisions.',
           style: TextStyle(fontFamily: 'Mulish'),
         ),
         actions: [

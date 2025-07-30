@@ -87,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 Opacity(
                   opacity: _subtitleOpacity.value,
                   child: const Text(
-                    'Your all-in-one medical assistant',
+                    'Your all-in-one assistant',
                     style: TextStyle(
                       fontFamily: 'Mulish',
                       fontSize: 16,

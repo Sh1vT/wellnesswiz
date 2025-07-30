@@ -281,7 +281,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
                         ),
                         SizedBox(height: 16),
                         Text(
-                          'This app uses Gemini API and AI services to power its chatbot.\n\nActual medical advice from your doctor or hospital must always be followed. WellWiz is an assistant for patients, not a replacement for medical professionals or institutions.',
+                          'This app uses Gemini API and AI services to power its chatbot.\n\nActual advice from professionals must always be followed. WellWiz is a productivity and lifestyle oriented assistant, not a replacement for professionals or institutions.',
                           style: TextStyle(
                             fontFamily: 'Mulish',
                             fontSize: 18,
@@ -303,7 +303,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
                         const Icon(Icons.location_on, size: 48, color: Color(0xFF7CB518)),
                         const SizedBox(height: 24),
                         const Text(
-                          'Find Nearby Hospitals',
+                          'Find Nearby Places',
                           style: TextStyle(
                             fontFamily: 'Mulish',
                             fontSize: 32,
@@ -314,7 +314,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'WellWiz can help you locate nearby hospitals. To do this, we need access to your location. Please allow location permission.',
+                          'WellWiz can help you locate nearby places of help. To do this, we need access to your location. Please allow location permission.',
                           style: TextStyle(
                             fontFamily: 'Mulish',
                             fontSize: 18,
@@ -490,7 +490,7 @@ class _AppTourScreenState extends State<AppTourScreen> with SingleTickerProvider
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'Get notifications for your medications, custom reminders, and positive thoughts. Please allow notifications to stay updated.',
+                          'Get notifications for your dailies, custom reminders, and positive thoughts. Please allow notifications to stay updated.',
                           style: TextStyle(
                             fontFamily: 'Mulish',
                             fontSize: 18,
