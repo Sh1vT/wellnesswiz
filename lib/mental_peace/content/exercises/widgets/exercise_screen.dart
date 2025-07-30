@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -19,7 +20,7 @@ class ExerciseScreen extends StatefulWidget {
   _ExerciseScreenState createState() => _ExerciseScreenState();
 }
 
-class _ExerciseScreenState extends State<ExerciseScreen> {
+class _ExerciseScreenState extends State<ExerciseScreen> with WidgetsBindingObserver {
   late Timer _timer;
   int _totalDuration = 0;
   int _elapsedTime = 0;
@@ -33,11 +34,13 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       CarouselSliderController();
   List<Map<String, dynamic>> _exerciseSteps = [];
   bool _isPaused = false;
+  bool _wasPausedByLifecycle = false;
 
   @override
   void initState() {
     //print("exercisepage");
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _audioPlayer = AudioPlayer();
     _playMusic();
     _initializeExerciseSteps();
@@ -197,7 +200,9 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       _isPaused = !_isPaused;
     });
     if (_isPaused) {
-      _timer.cancel();
+      if (_timer.isActive) {
+        _timer.cancel();
+      }
       await _audioPlayer.pause();
     } else {
       startTimer();
@@ -207,10 +212,61 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer.cancel();
     super.dispose();
     _audioPlayer.stop();
     _audioPlayer.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    print('App lifecycle state changed to: $state');
+    
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.detached:
+        // App is going to background
+        print('App going to background, current pause state: $_isPaused');
+        if (!_isPaused) {
+          _wasPausedByLifecycle = true;
+          _pauseExercise();
+          print('Exercise paused by lifecycle');
+        }
+        break;
+      case AppLifecycleState.resumed:
+        // App is coming back to foreground - stay paused, let user decide
+        print('App resumed, exercise pause state: $_isPaused');
+        // No auto-resume, user can manually press play button
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _pauseExercise() {
+    print('Pausing exercise - timer active: ${_timer.isActive}');
+    setState(() {
+      _isPaused = true;
+    });
+    if (_timer.isActive) {
+      _timer.cancel();
+      print('Timer cancelled');
+    }
+    _audioPlayer.pause();
+    print('Audio paused');
+  }
+
+  void _resumeExercise() {
+    print('Resuming exercise');
+    setState(() {
+      _isPaused = false;
+    });
+    startTimer();
+    _audioPlayer.resume();
   }
 
   @override
@@ -436,21 +492,50 @@ final Map<String, List<Map<String, dynamic>>> exerciseSteps = {
     {'instruction': 'Exhale slowly', 'duration': 8},
   ],
   'Box': [
-    {'instruction': 'Inhale for 6 seconds', 'duration': 6},
-    {'instruction': 'Hold for 6 seconds', 'duration': 6},
-    {'instruction': 'Exhale for 6 seconds', 'duration': 6},
-    {'instruction': 'Hold for 6 seconds', 'duration': 6},
+    {'instruction': 'Inhale deeply', 'duration': 6},
+    {'instruction': 'Now hold', 'duration': 6},
+    {'instruction': 'Exhale slowly', 'duration': 6},
+    {'instruction': 'Hold again', 'duration': 6},
   ],
   '4-7-8': [
-    {'instruction': 'Inhale for 4 seconds', 'duration': 4},
-    {'instruction': 'Hold for 7 seconds', 'duration': 7},
-    {'instruction': 'Exhale for 8 seconds', 'duration': 8},
+    {'instruction': 'Inhale now', 'duration': 4},
+    {'instruction': 'Hold for long', 'duration': 7},
+    {'instruction': 'Exhale for longer', 'duration': 8},
   ],
   'Alternate Nostril': [
     {
-      'instruction': 'Close right nostril and inhale through left nostril',
+      'instruction': 'Close right nostril, inhale from left',
       'duration': 6,
     },
-    {'instruction': 'Hold breath, close both nostrils', 'duration': 6},
+    {'instruction': 'Close both and hold', 'duration': 6},
+    {
+      'instruction': 'Keep left closed, exhale from right',
+      'duration': 6,
+    },
+    {'instruction': 'Close both, hold again', 'duration': 6},
+  ],
+  'Happy': [
+    {'instruction': 'Smile and inhale deeply', 'duration': 5},
+    {'instruction': 'Hold with a gentle smile', 'duration': 5},
+    {'instruction': 'Exhale with joy', 'duration': 5},
+    {'instruction': 'Pause and feel happy', 'duration': 5},
+  ],
+  'Calm Down': [
+    {'instruction': 'Take a slow, calming breath in', 'duration': 6},
+    {'instruction': 'Hold and center yourself', 'duration': 4},
+    {'instruction': 'Release tension as you exhale', 'duration': 8},
+    {'instruction': 'Rest in calmness', 'duration': 4},
+  ],
+  'Stress Relief': [
+    {'instruction': 'Breathe in relaxation', 'duration': 7},
+    {'instruction': 'Hold and let go of stress', 'duration': 5},
+    {'instruction': 'Breathe out tension', 'duration': 7},
+    {'instruction': 'Feel the relief', 'duration': 5},
+  ],
+  'Relaxed Mind': [
+    {'instruction': 'Inhale peace and clarity', 'duration': 6},
+    {'instruction': 'Hold and clear your mind', 'duration': 6},
+    {'instruction': 'Exhale all thoughts', 'duration': 6},
+    {'instruction': 'Rest in stillness', 'duration': 6},
   ],
 };
