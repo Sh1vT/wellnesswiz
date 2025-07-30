@@ -44,13 +44,16 @@ class PostTile extends StatelessWidget {
             ],
             if (post.imageUrl.isNotEmpty) ...[
               const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Image.network(
-                    post.imageUrl,
-                    fit: BoxFit.cover,
+              GestureDetector(
+                onTap: () => _showImageViewer(context, post.imageUrl),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Image.network(
+                      post.imageUrl,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
               ),
@@ -100,6 +103,64 @@ class PostTile extends StatelessWidget {
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     return '${dt.day}/${dt.month}/${dt.year}';
+  }
+
+  void _showImageViewer(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.9), // Darker background
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Stack(
+          children: [
+            // Full screen image
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              child: InteractiveViewer(
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            // Close button at bottom center
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
