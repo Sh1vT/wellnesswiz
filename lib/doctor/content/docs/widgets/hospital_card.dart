@@ -91,6 +91,7 @@ class HospitalCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                             color: ColorPalette.blackDarker,
+                            fontFamily: 'Mulish',
                           ),
                         ),
                         const SizedBox(width: 2),
@@ -108,14 +109,14 @@ class HospitalCard extends StatelessWidget {
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: ColorPalette.blackDarker),
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: ColorPalette.blackDarker, fontFamily: 'Mulish'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                   ),
                   if (city.isNotEmpty) ...[
                     const SizedBox(height: 6),
-                    Text(city, style: const TextStyle(fontSize: 13, color: Colors.grey), textAlign: TextAlign.center),
+                    Text(city, style: const TextStyle(fontSize: 13, color: Colors.grey, fontFamily: 'Mulish'), textAlign: TextAlign.center),
                   ],
                 ],
               ),

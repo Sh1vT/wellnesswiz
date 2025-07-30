@@ -41,16 +41,20 @@ class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
       ...widget.within20km,
     ];
     Map<String, double> ratings = {};
-    await Future.wait(allHospitals.map((hospital) async {
-      final key = generateHospitalKey(hospital);
-      final reviews = await HospitalRatingService.getRatingsForHospital(key);
-      if (reviews.isNotEmpty) {
-        final avg = reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length;
-        ratings[key] = avg;
-      } else {
-        ratings[key] = 0.0;
-      }
-    }));
+    await Future.wait(
+      allHospitals.map((hospital) async {
+        final key = generateHospitalKey(hospital);
+        final reviews = await HospitalRatingService.getRatingsForHospital(key);
+        if (reviews.isNotEmpty) {
+          final avg =
+              reviews.map((r) => r.rating).reduce((a, b) => a + b) /
+              reviews.length;
+          ratings[key] = avg;
+        } else {
+          ratings[key] = 0.0;
+        }
+      }),
+    );
     setState(() {
       hospitalRatings = ratings;
       loadingRatings = false;
@@ -70,34 +74,54 @@ class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 18, bottom: 0),
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 18,
+            bottom: 0,
+          ),
           child: Text(
             'Nearby',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: ColorPalette.black, fontFamily: 'Mulish'),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: ColorPalette.black,
+              fontFamily: 'Mulish',
+            ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 0),
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 8,
+            bottom: 0,
+          ),
           child: Row(
             children: [
               Wrap(
                 spacing: 6,
-                children: List.generate(3, (i) => ChoiceChip(
-                  label: Text(
-                    tiers[i]['label'] as String,
-                    style: TextStyle(
-                      color: selectedTier == i ? Colors.white : ColorPalette.black,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Mulish',
+                children: List.generate(
+                  3,
+                  (i) => ChoiceChip(
+                    label: Text(
+                      tiers[i]['label'] as String,
+                      style: TextStyle(
+                        color: selectedTier == i
+                            ? Colors.white
+                            : ColorPalette.black,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Mulish',
+                      ),
                     ),
+                    selected: selectedTier == i,
+                    selectedColor: ColorPalette.green,
+                    backgroundColor: Colors.grey[200],
+                    onSelected: (selected) {
+                      if (selected) setState(() => selectedTier = i);
+                    },
                   ),
-                  selected: selectedTier == i,
-                  selectedColor: ColorPalette.green,
-                  backgroundColor: Colors.grey[200],
-                  onSelected: (selected) {
-                    if (selected) setState(() => selectedTier = i);
-                  },
-                )),
+                ),
               ),
             ],
           ),
@@ -112,21 +136,34 @@ class _NearbyHospitalsSectionState extends State<NearbyHospitalsSection> {
                   itemBuilder: (context, index) => const HospitalCardShimmer(),
                 )
               : hospitals.isEmpty
-                  ? const Center(child: Text('None in this range'))
-                  : ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: hospitals.length,
-                      padding: const EdgeInsets.only(left: 8, right: 8),
-                      itemBuilder: (context, index) {
-                        final hospital = hospitals[index];
-                        final key = generateHospitalKey(hospital);
-                        final avgRating = hospitalRatings[key];
-                        return HospitalCard(hospital: hospital, averageRating: avgRating);
-                      },
+              ? const Center(
+                  child: Text(
+                    'None in this range :(',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: ColorPalette.blackDarker,
+                      fontFamily: 'Mulish',
+                      fontWeight: FontWeight.w600,
                     ),
+                  ),
+                )
+              : ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: hospitals.length,
+                  padding: const EdgeInsets.only(left: 8, right: 8),
+                  itemBuilder: (context, index) {
+                    final hospital = hospitals[index];
+                    final key = generateHospitalKey(hospital);
+                    final avgRating = hospitalRatings[key];
+                    return HospitalCard(
+                      hospital: hospital,
+                      averageRating: avgRating,
+                    );
+                  },
+                ),
         ),
         const SizedBox(height: 10),
       ],
     );
   }
-} 
+}

@@ -66,101 +66,105 @@ class _CommentSheetState extends State<CommentSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: EdgeInsets.only(
+        top: 16,
+        left: 16,
+        right: 16,
+        bottom: 8 + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const Text('Comments', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(height: 8),
+          // Error message display
+          if (_errorMessage != null)
             Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 12),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 8),
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+                color: Colors.red.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade300),
+              ),
+              child: Text(
+                _errorMessage!,
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontFamily: 'Mulish',
+                  fontSize: 12,
+                ),
               ),
             ),
-            const Text('Comments', style: TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold, fontSize: 18)),
-            const SizedBox(height: 8),
-            // Error message display
-            if (_errorMessage != null)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                margin: const EdgeInsets.only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade300),
-                ),
-                child: Text(
-                  _errorMessage!,
-                  style: TextStyle(
-                    color: Colors.red.shade700,
-                    fontFamily: 'Mulish',
-                    fontSize: 12,
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('posts')
+                  .doc(widget.postId)
+                  .collection('comments')
+                  .orderBy('timestamp', descending: false)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final comments = snapshot.data!.docs
+                    .map((doc) => CommentModel.fromFirestore(doc, widget.postId))
+                    .toList();
+                if (comments.isEmpty) {
+                  return const Center(child: Text('No comments yet.'));
+                }
+                return ListView.separated(
+                  itemCount: comments.length,
+                  separatorBuilder: (_, __) => Divider(),
+                  itemBuilder: (context, i) {
+                    final c = comments[i];
+                    return ListTile(
+                      leading: c.authorPhoto.isNotEmpty
+                          ? CircleAvatar(backgroundImage: NetworkImage(c.authorPhoto))
+                          : const CircleAvatar(child: Icon(Icons.account_circle)),
+                      title: Text(c.authorName, style: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
+                      subtitle: Text(c.content, style: const TextStyle(fontFamily: 'Mulish')),
+                      trailing: Text(_formatTimestamp(c.timestamp), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  decoration: const InputDecoration(
+                    hintText: 'Add a comment...',
+                    border: OutlineInputBorder(),
                   ),
                 ),
               ),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('posts')
-                    .doc(widget.postId)
-                    .collection('comments')
-                    .orderBy('timestamp', descending: false)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  final comments = snapshot.data!.docs
-                      .map((doc) => CommentModel.fromFirestore(doc, widget.postId))
-                      .toList();
-                  if (comments.isEmpty) {
-                    return const Center(child: Text('No comments yet.'));
-                  }
-                  return ListView.separated(
-                    itemCount: comments.length,
-                    separatorBuilder: (_, __) => Divider(),
-                    itemBuilder: (context, i) {
-                      final c = comments[i];
-                      return ListTile(
-                        leading: c.authorPhoto.isNotEmpty
-                            ? CircleAvatar(backgroundImage: NetworkImage(c.authorPhoto))
-                            : const CircleAvatar(child: Icon(Icons.account_circle)),
-                        title: Text(c.authorName, style: const TextStyle(fontFamily: 'Mulish', fontWeight: FontWeight.bold)),
-                        subtitle: Text(c.content, style: const TextStyle(fontFamily: 'Mulish')),
-                        trailing: Text(_formatTimestamp(c.timestamp), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                      );
-                    },
-                  );
-                },
+              const SizedBox(width: 8),
+              IconButton(
+                icon: _sending
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.send, color: Color.fromARGB(255, 106, 172, 67)),
+                onPressed: _sending ? null : _addComment,
               ),
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Add a comment...',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: _sending
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.send, color: Color.fromARGB(255, 106, 172, 67)),
-                  onPressed: _sending ? null : _addComment,
-                ),
-              ],
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
