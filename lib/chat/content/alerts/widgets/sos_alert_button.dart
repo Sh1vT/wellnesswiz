@@ -44,7 +44,7 @@ class _SOSAlertButtonState extends State<SOSAlertButton> {
         desiredAccuracy: LocationAccuracy.best);
     double lat = position.latitude;
     double lng = position.longitude;
-    List<String> recipients = contacts.map<String>((c) => "+91${c.phone}").toList();
+    List<String> recipients = contacts.map<String>((c) => "${c.phone}").toList();
     String message =
         "I am facing an emergency. Please call for help or arrive here: https://www.google.com/maps/place/$lat+$lng";
     await sendSOSMessages(recipients, message);
