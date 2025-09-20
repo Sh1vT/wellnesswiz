@@ -6,6 +6,17 @@ A comprehensive health and wellness Flutter application that provides mental hea
 
 WellWiz is an all-in-one health assistant app designed to help users manage their mental well-being, track health metrics, and access medical resources. The app combines AI-powered chat functionality with practical health tools and breathing exercises.
 
+## Screenshots
+
+<p align="center">
+<img src="https://i.postimg.cc/wvhgcZpL/1.png" width=200 height=457>
+<img src="https://i.postimg.cc/s2GV11Hn/2.png" width=200 height=457>
+<img src="https://i.postimg.cc/7ZWHxS9G/3.png" width=200 height=457>
+<img src="https://i.postimg.cc/g2JcFgVb/4.png" width=200 height=457>
+<img src="https://i.postimg.cc/QxSNy2Wq/5.png" width=200 height=457>
+<img src="https://i.postimg.cc/BQJQNSt6/6.png" width=200 height=457>
+</p>
+
 ## Features
 
 ### Mental Health & Wellness
@@ -64,7 +75,7 @@ WellWiz is an all-in-one health assistant app designed to help users manage thei
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Sh1vT/wellnesswiz.git
    cd wellwiz
    ```
 
@@ -146,9 +157,6 @@ lib/
 3. Make your changes
 4. Test thoroughly
 5. Submit a pull request
-
-## License
-
 This project is private and not intended for public distribution.
 
 ## Support
